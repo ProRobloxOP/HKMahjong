@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.OnScreen;
 
-public class WelcomeScreen : MonoBehaviour, IPointerClickHandler
+public class WelcomeScreen : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
