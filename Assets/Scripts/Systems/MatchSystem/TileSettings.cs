@@ -14,8 +14,8 @@ public class TileSettings : ScriptableObject
     [SerializeField] private int sanYuanTiles = 12;
     [SerializeField] private int fengTiles = 16;
 
-    [SerializeField] private int columnStack = 2;
-    [SerializeField] private int rowStack = 18;
+    [SerializeField] private int columnStack = 18;
+    [SerializeField] private int rowStack = 2;
 
     public int TotalTiles => totalTiles;
     public int SeasonTiles => seasonTiles;
