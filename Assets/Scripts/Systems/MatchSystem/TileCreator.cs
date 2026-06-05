@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 public class TileCreator : MonoBehaviour
 {
@@ -8,20 +9,46 @@ public class TileCreator : MonoBehaviour
     [SerializeField] private TileSettings tileSettings;
     [SerializeField] private GameObject blankTile;
 
-    public void CreateTiles()
+    private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row)
+    {
+        return new Vector3(tileTransform.position.x + (column-1)*tileBounds.x*tileSettings.AxisSpacing, tileTransform.position.y + (row -1)*tileBounds.y*tileSettings.YSpacing, tileTransform.position.z);
+    }
+
+    private Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row)
+    {
+        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row -1)*tileBounds.y*tileSettings.YSpacing, tileTransform.position.z + (column-1)*tileBounds.z*tileSettings.AxisSpacing);
+    }
+
+    private Vector3 SetTilePos(GameObject tile, int column, int row, String axis)
+    {
+        if (axis == "x")
+        {
+            return SetTilePosX(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row);
+        }
+        return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row);
+    }
+
+    private void CreateTileStack(int stackNum)
     {
         for (int row = 1; row <= tileSettings.RowStack; row++)
         {
             for (int column = 1; column <= tileSettings.ColumnStack; column++)
             {
-                GameObject tile = Instantiate(blankTile, new Vector3(-300, 40, 250), Quaternion.Euler(new Vector3(-90, 90, 0)));
-                Transform transform = tile.transform;
-                Vector3 renderer = tile.GetComponent<Renderer>().bounds.size;
-                transform.position = new Vector3(transform.position.x + (row-1)*renderer.x*1.08f, transform.position.y + (column -1)*renderer.y*1.05f, transform.position.z);
+                TileStack tileStack = tileSettings.BoardSetting[stackNum];
+                GameObject tile = Instantiate(blankTile, tileStack.pos, tileSettings.BoardSetting[stackNum].rot);
+                 Transform transform = tile.transform;
+                
+                transform.position = SetTilePos(tile, column, row, tileStack.axis);
                 tile.name = (row*column).ToString();
                 transform.SetParent(GameObject.Find("Tiles").transform, true);
             }
         }
+    }
+
+    public void CreateTiles()
+    {
+        CreateTileStack(0);
+        CreateTileStack(1);
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

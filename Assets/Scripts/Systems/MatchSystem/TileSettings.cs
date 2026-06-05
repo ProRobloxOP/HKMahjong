@@ -1,6 +1,15 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+[System.Serializable]
+public struct TileStack
+{
+    public Vector3 pos;
+    public Quaternion rot;
+    public String axis;
+}
 
 [CreateAssetMenu(fileName = "TileSettings", menuName = "Scriptable Objects/TileSettings")]
 public class TileSettings : ScriptableObject
@@ -17,6 +26,26 @@ public class TileSettings : ScriptableObject
     [SerializeField] private int columnStack = 18;
     [SerializeField] private int rowStack = 2;
 
+    [SerializeField] private float axisSpacing = 1.024f;
+    [SerializeField] private float ySpacing = 1.04f;
+
+    [SerializeField] private TileStack[] boardSetting =
+    {
+        new TileStack
+        {
+            pos = new Vector3(-245, 40, 250),
+            rot = Quaternion.Euler(new Vector3(-90, 90, 0)),
+            axis = "x"
+        },
+
+        new TileStack
+        {
+            pos = new Vector3(-270, 40, 200),
+            rot = Quaternion.Euler(new Vector3(-90, 0, 0)),
+            axis = "z"
+        }
+    };
+
     public int TotalTiles => totalTiles;
     public int SeasonTiles => seasonTiles;
     public int FlowerTiles => flowerTiles;
@@ -27,5 +56,10 @@ public class TileSettings : ScriptableObject
     public int FengTiles => fengTiles;
     public int ColumnStack => columnStack;
     public int RowStack => rowStack;
+
+    public float AxisSpacing => axisSpacing;
+    public float YSpacing => ySpacing;
+
+    public TileStack[] BoardSetting => boardSetting;
 
 }
