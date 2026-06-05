@@ -20,5 +20,14 @@ MonoBehaviour:
   tongTiles: 36
   sanYuanTiles: 12
   fengTiles: 16
-  columnStack: 2
-  rowStack: 18
+  columnStack: 18
+  rowStack: 2
+  axisSpacing: 1.024
+  ySpacing: 1.04
+  boardSetting:
+  - pos: {x: -245, y: 40, z: 250}
+    rot: {x: -0.49999997, y: 0.49999997, z: 0.49999997, w: 0.49999997}
+    axis: x
+  - pos: {x: -280, y: 40, z: 200}
+    rot: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
+    axis: z
