@@ -1,7 +1,0 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Editor/SimpleCustomEditor.uss?fileID=7433441132597879392&amp;guid=5676f226213c44f8e845649c7fe4314a&amp;type=3#SimpleCustomEditor"/>
-    <ui:Label text="testing"/>
-    <ui:Label text="testing&#10;" class="custom-label"/>
-    <ui:Button text="Button" name="Button"/>
-    <ui:Toggle label="Number?&#10;" name="toggle1"/>
-</ui:UXML>
