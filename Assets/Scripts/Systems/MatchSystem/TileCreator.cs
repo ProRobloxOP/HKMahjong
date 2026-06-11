@@ -39,7 +39,7 @@ public class TileCreator : MonoBehaviour
                  Transform transform = tile.transform;
                 
                 transform.position = SetTilePos(tile, column, row, tileStack.axis);
-                tile.name = (row*column).ToString();
+                tile.name = (row*column*(stackNum+1)).ToString();
                 transform.SetParent(GameObject.Find("Tiles").transform, true);
             }
         }
@@ -47,8 +47,10 @@ public class TileCreator : MonoBehaviour
 
     public void CreateTiles()
     {
-        CreateTileStack(0);
-        CreateTileStack(1);
+        for (int i = 0; i < tileSettings.BoardSetting.Length; i++)
+        {
+            CreateTileStack(i);
+        }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

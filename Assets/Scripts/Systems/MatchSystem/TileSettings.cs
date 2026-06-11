@@ -33,16 +33,30 @@ public class TileSettings : ScriptableObject
     {
         new TileStack
         {
-            pos = new Vector3(-245, 40, 250),
+            pos = new Vector3(-245, 40, 220),
             rot = Quaternion.Euler(new Vector3(-90, 90, 0)),
             axis = "x"
         },
 
         new TileStack
         {
-            pos = new Vector3(-270, 40, 200),
+            pos = new Vector3(-277.5f, 40, 200),
             rot = Quaternion.Euler(new Vector3(-90, 0, 0)),
             axis = "z"
+        },
+
+        new TileStack
+        {
+            pos = new Vector3(275, 40, 200),
+            rot = Quaternion.Euler(new Vector3(-90, 0, 0)),
+            axis = "z"
+        },
+
+        new TileStack
+        {
+            pos = new Vector3(-245, 40, 660),
+            rot = Quaternion.Euler(new Vector3(-90, -90, 0)),
+            axis = "x"
         }
     };
 
