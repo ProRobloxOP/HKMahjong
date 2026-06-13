@@ -60,19 +60,39 @@ public class TileCreator : MonoBehaviour
         return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row);
     }
 
-    /*private String assignSuit()
+    private String assignSuit()
     {
+        Dictionary<String, int> suitSums = new Dictionary<string, int>
+        {
+            ["Char"] = tileSettings.WanTiles - TileTracker.Normal["Wan"].Sum(pair => pair.Value),
+            ["Circle"] = tileSettings.TongTiles - TileTracker.Normal["Tong"].Sum(pair => pair.Value),
+            ["Stick"] = tileSettings.TiaoTiles - TileTracker.Normal["Tiao"].Sum(pair => pair.Value),
+
+            ["Dragon"] = tileSettings.SanYuanTiles - TileTracker.Special["Dragon"].Sum(pair => pair.Value),
+            ["Wind"] = tileSettings.FengTiles - TileTracker.Special["Wind"].Sum(pair => pair.Value),
+            ["Flower"] = tileSettings.FlowerTiles - TileTracker.Special["Flower"].Sum(pair => pair.Value),
+            ["Season"] = tileSettings.SeasonTiles - TileTracker.Special["Season"].Sum(pair => pair.Value)
+        };
         int leftover = tileSettings.TotalTiles - TileTracker.total;
         int n = UnityEngine.Random.Range(1, leftover);
 
-        int wanSum = tileSettings.WanTiles - TileTracker.Normal["Wan"].Sum(pair => pair.Value);
-        int tongSum = tileSettings.TongTiles - TileTracker.Normal["Tong"].Sum(pair => pair.Value);
-        int tiaoSum = tileSettings.TiaoTiles - TileTracker.Normal["Tiao"].Sum(pair => pair.Value);
+        foreach (var pair in suitSums)
+        {
+            n -= pair.Value;
+            if (n < 0) { return pair.Key; }
+        }
 
-        int sanYuanSum = tileSettings.SanYuanTiles - TileTracker.Special["Dragon"].Sum(pair => pair.Value);
-        int fengSum = tileSettings.FengTiles - TileTracker.Special["Wind"].Sum(pair => pair.Value);
-        int flowerSum = tileSettings.FlowerTiles - TileTracker.Special["Flower"].Sum(pair => pair.Value);
-        int seasonSum = tileSettings.SeasonTiles - TileTracker.Special["Season"].Sum(pair => pair.Value);
+        return null;
+    }
+
+    /*private Tile assignNormalTile(String suit)
+    {
+        Dictionary<String, String> tilePrefixes = new Dictionary<string, string>
+        {
+          ["Char"] = "M",
+          ["Circle"] = "C",
+          ["Stick"] = "S"  
+        };
 
 
     }*/
