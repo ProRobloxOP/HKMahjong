@@ -1,7 +1,16 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
+
+[Serializable]
+public struct Tile
+{
+    public int? number;
+    public string suit;
+    public string name;
+}
 
 public class TileCreator : MonoBehaviour
 {
@@ -36,10 +45,18 @@ public class TileCreator : MonoBehaviour
             {
                 TileStack tileStack = tileSettings.BoardSetting[stackNum];
                 GameObject tile = Instantiate(blankTile, tileStack.pos, tileSettings.BoardSetting[stackNum].rot);
-                 Transform transform = tile.transform;
+                Transform transform = tile.transform;
+                Vector3 localScale = transform.localScale;
+
+                int tileNumber = (row*column*(stackNum+1));
                 
+                transform.localScale = new Vector3(
+                    localScale.x*tileSettings.Scale,
+                    localScale.y*tileSettings.Scale,
+                    localScale.z*tileSettings.Scale
+                );
                 transform.position = SetTilePos(tile, column, row, tileStack.axis);
-                tile.name = (row*column*(stackNum+1)).ToString();
+                tile.name = tileNumber.ToString();
                 transform.SetParent(GameObject.Find("Tiles").transform, true);
             }
         }

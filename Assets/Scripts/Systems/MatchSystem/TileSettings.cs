@@ -26,36 +26,37 @@ public class TileSettings : ScriptableObject
     [SerializeField] private int columnStack = 18;
     [SerializeField] private int rowStack = 2;
 
-    [SerializeField] private float axisSpacing = 1.024f;
+    [SerializeField] private float axisSpacing = 1.01f;
     [SerializeField] private float ySpacing = 1.04f;
+    [SerializeField] private float scale = 6.5f;
 
     [SerializeField] private TileStack[] boardSetting =
     {
         new TileStack
         {
             pos = new Vector3(-245, 40, 220),
-            rot = Quaternion.Euler(new Vector3(-90, 90, 0)),
+            rot = Quaternion.Euler(new Vector3(0, 0, 90)),
             axis = "x"
         },
 
         new TileStack
         {
-            pos = new Vector3(-277.5f, 40, 200),
-            rot = Quaternion.Euler(new Vector3(-90, 0, 0)),
+            pos = new Vector3(-277.5f, 40, 215),
+            rot = Quaternion.Euler(new Vector3(0, 90, 90)),
             axis = "z"
         },
 
         new TileStack
         {
-            pos = new Vector3(275, 40, 200),
-            rot = Quaternion.Euler(new Vector3(-90, 0, 0)),
+            pos = new Vector3(233, 40, 215),
+            rot = Quaternion.Euler(new Vector3(0, 90, 90)),
             axis = "z"
         },
 
         new TileStack
         {
             pos = new Vector3(-245, 40, 660),
-            rot = Quaternion.Euler(new Vector3(-90, -90, 0)),
+            rot = Quaternion.Euler(new Vector3(0, 0, 90)),
             axis = "x"
         }
     };
@@ -73,6 +74,7 @@ public class TileSettings : ScriptableObject
 
     public float AxisSpacing => axisSpacing;
     public float YSpacing => ySpacing;
+    public float Scale => scale;
 
     public TileStack[] BoardSetting => boardSetting;
 
