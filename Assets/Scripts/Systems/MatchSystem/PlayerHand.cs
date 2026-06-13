@@ -8,7 +8,7 @@ using UnityEngine.InputSystem.Controls;
 public class PlayerHand : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public Dictionary<string, Tile[]> hand = new Dictionary<string, Tile[]>(); // suit -> Tile
+    static public Dictionary<string, Tile[]> hand = new Dictionary<string, Tile[]>(); // suit -> Tile
 
     private int compareOrder(String[] order, Tile tile1, Tile tile2)
     {

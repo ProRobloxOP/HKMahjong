@@ -14,23 +14,29 @@ public struct TileStack
 [CreateAssetMenu(fileName = "TileSettings", menuName = "Scriptable Objects/TileSettings")]
 public class TileSettings : ScriptableObject
 {
-    [SerializeField] private int totalTiles = 144;
-    [SerializeField] private int seasonTiles = 4;
-    [SerializeField] private int flowerTiles = 4;
-    [SerializeField] private int wanTiles = 36;
-    [SerializeField] private int tiaoTiles = 36;
-    [SerializeField] private int tongTiles = 36;
-    [SerializeField] private int sanYuanTiles = 12;
-    [SerializeField] private int fengTiles = 16;
+    public static Dictionary<String, float> general = new Dictionary<string, float>
+    {
+        ["total"] = 144,
 
-    [SerializeField] private int columnStack = 18;
-    [SerializeField] private int rowStack = 2;
+        ["char"] = 36,
+        ["circle"] = 36,
+        ["stick"] = 36,
 
-    [SerializeField] private float axisSpacing = 1.01f;
-    [SerializeField] private float ySpacing = 1.04f;
-    [SerializeField] private float scale = 6.5f;
+        ["dragon"] = 12,
+        ["wind"] = 16,
+        ["season"] = 4,
+        ["flower"] = 4,
 
-    [SerializeField] private TileStack[] boardSetting =
+        ["columnStack"] = 18,
+        ["rowStack"] = 2,
+
+        ["axisSpacing"] = 1.10f,
+        ["ySpacing"] = 1.04f,
+        ["scale"] = 6.5f,
+        ["maxRepeat"] = 4
+    };
+
+    public static TileStack[] boardSetting =
     {
         new TileStack
         {
@@ -60,22 +66,4 @@ public class TileSettings : ScriptableObject
             axis = "x"
         }
     };
-
-    public int TotalTiles => totalTiles;
-    public int SeasonTiles => seasonTiles;
-    public int FlowerTiles => flowerTiles;
-    public int WanTiles => wanTiles;
-    public int TiaoTiles => tiaoTiles;
-    public int TongTiles => tongTiles;
-    public int SanYuanTiles => sanYuanTiles;
-    public int FengTiles => fengTiles;
-    public int ColumnStack => columnStack;
-    public int RowStack => rowStack;
-
-    public float AxisSpacing => axisSpacing;
-    public float YSpacing => ySpacing;
-    public float Scale => scale;
-
-    public TileStack[] BoardSetting => boardSetting;
-
 }

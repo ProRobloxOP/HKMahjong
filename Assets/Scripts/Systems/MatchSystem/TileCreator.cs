@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Xml.Schema;
 using Unity.Mathematics;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
 
@@ -21,9 +22,9 @@ class TileTracker
 {
     public static Dictionary<String, Dictionary<int, int>> Normal = new Dictionary<string, Dictionary<int, int>>
     {
-        ["Wan"] = new Dictionary<int, int>{},
-        ["Tong"] = new Dictionary<int, int>{},
-        ["Tiao"] = new Dictionary<int, int>{}
+        ["Char"] = new Dictionary<int, int>{},
+        ["Circle"] = new Dictionary<int, int>{},
+        ["Stick"] = new Dictionary<int, int>{}
     };
     public static Dictionary<String, Dictionary<String, int>> Special = new Dictionary<string, Dictionary<string, int>>
     {
@@ -37,18 +38,17 @@ class TileTracker
 
 public class TileCreator : MonoBehaviour
 {
-
-    [SerializeField] private TileSettings tileSettings;
-    [SerializeField] private GameObject blankTile;
+    private string[] blankTilePath;
+    private GameObject blankTile;
 
     private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row)
     {
-        return new Vector3(tileTransform.position.x + (column-1)*tileBounds.x*tileSettings.AxisSpacing, tileTransform.position.y + (row -1)*tileBounds.y*tileSettings.YSpacing, tileTransform.position.z);
+        return new Vector3(tileTransform.position.x + (column-1)*tileBounds.x*TileSettings.general["axisSpacing"], tileTransform.position.y + (row -1)*tileBounds.y*TileSettings.general["ySpacing"], tileTransform.position.z);
     }
 
     private Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row)
     {
-        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row -1)*tileBounds.y*tileSettings.YSpacing, tileTransform.position.z + (column-1)*tileBounds.z*tileSettings.AxisSpacing);
+        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row -1)*tileBounds.y*TileSettings.general["ySpacing"], tileTransform.position.z + (column-1)*tileBounds.z*TileSettings.general["axisSpacing"]);
     }
 
     private Vector3 SetTilePos(GameObject tile, int column, int row, String axis)
@@ -62,19 +62,19 @@ public class TileCreator : MonoBehaviour
 
     private String assignSuit()
     {
-        Dictionary<String, int> suitSums = new Dictionary<string, int>
+        Dictionary<String, float> suitSums = new Dictionary<string, float>
         {
-            ["Char"] = tileSettings.WanTiles - TileTracker.Normal["Wan"].Sum(pair => pair.Value),
-            ["Circle"] = tileSettings.TongTiles - TileTracker.Normal["Tong"].Sum(pair => pair.Value),
-            ["Stick"] = tileSettings.TiaoTiles - TileTracker.Normal["Tiao"].Sum(pair => pair.Value),
+            ["Char"] = TileSettings.general["char"] - TileTracker.Normal["Char"].Sum(pair => pair.Value),
+            ["Circle"] = TileSettings.general["circle"] - TileTracker.Normal["Circle"].Sum(pair => pair.Value),
+            ["Stick"] = TileSettings.general["stick"] - TileTracker.Normal["Stick"].Sum(pair => pair.Value),
 
-            ["Dragon"] = tileSettings.SanYuanTiles - TileTracker.Special["Dragon"].Sum(pair => pair.Value),
-            ["Wind"] = tileSettings.FengTiles - TileTracker.Special["Wind"].Sum(pair => pair.Value),
-            ["Flower"] = tileSettings.FlowerTiles - TileTracker.Special["Flower"].Sum(pair => pair.Value),
-            ["Season"] = tileSettings.SeasonTiles - TileTracker.Special["Season"].Sum(pair => pair.Value)
+            ["Dragon"] = TileSettings.general["dragon"] - TileTracker.Special["Dragon"].Sum(pair => pair.Value),
+            ["Wind"] = TileSettings.general["wind"] - TileTracker.Special["Wind"].Sum(pair => pair.Value),
+            ["Flower"] = TileSettings.general["flower"] - TileTracker.Special["Flower"].Sum(pair => pair.Value),
+            ["Season"] = TileSettings.general["season"] - TileTracker.Special["Season"].Sum(pair => pair.Value)
         };
-        int leftover = tileSettings.TotalTiles - TileTracker.total;
-        int n = UnityEngine.Random.Range(1, leftover);
+        int leftover = (int) TileSettings.general["total"] - TileTracker.total;
+        float n = UnityEngine.Random.Range(1, leftover);
 
         foreach (var pair in suitSums)
         {
@@ -87,33 +87,34 @@ public class TileCreator : MonoBehaviour
 
     /*private Tile assignNormalTile(String suit)
     {
+        Dictionary<int, int> usedTiles = TileTracker.Normal[suit];
         Dictionary<String, String> tilePrefixes = new Dictionary<string, string>
         {
           ["Char"] = "M",
           ["Circle"] = "C",
           ["Stick"] = "S"  
         };
-
-
+        
+        int total = 
     }*/
 
     private void CreateTileStack(int stackNum)
     {
-        for (int row = 1; row <= tileSettings.RowStack; row++)
+        for (int row = 1; row <= TileSettings.general["rowStack"]; row++)
         {
-            for (int column = 1; column <= tileSettings.ColumnStack; column++)
+            for (int column = 1; column <= TileSettings.general["columnStack"]; column++)
             {
-                TileStack tileStack = tileSettings.BoardSetting[stackNum];
-                GameObject tile = Instantiate(blankTile, tileStack.pos, tileSettings.BoardSetting[stackNum].rot);
+                TileStack tileStack = TileSettings.boardSetting[stackNum];
+                GameObject tile = Instantiate(blankTile, tileStack.pos, TileSettings.boardSetting[stackNum].rot);
                 Transform transform = tile.transform;
                 Vector3 localScale = transform.localScale;
 
                 int tileNumber = (row*column*(stackNum+1));
                 
                 transform.localScale = new Vector3(
-                    localScale.x*tileSettings.Scale,
-                    localScale.y*tileSettings.Scale,
-                    localScale.z*tileSettings.Scale
+                    localScale.x*TileSettings.general["scale"],
+                    localScale.y*TileSettings.general["scale"],
+                    localScale.z*TileSettings.general["scale"]
                 );
                 transform.position = SetTilePos(tile, column, row, tileStack.axis);
                 tile.name = tileNumber.ToString();
@@ -124,7 +125,9 @@ public class TileCreator : MonoBehaviour
 
     public void CreateTiles()
     {
-        for (int i = 0; i < tileSettings.BoardSetting.Length; i++)
+        blankTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/Blank.prefab");
+
+        for (int i = 0; i < TileSettings.boardSetting.Length; i++)
         {
             CreateTileStack(i);
         }
