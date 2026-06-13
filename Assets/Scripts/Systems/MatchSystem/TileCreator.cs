@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Xml.Schema;
 using Unity.Mathematics;
 using Unity.VisualScripting;
@@ -15,17 +17,29 @@ public struct Tile
     public string name;
 }
 
+class TileTracker
+{
+    public static Dictionary<String, Dictionary<int, int>> Normal = new Dictionary<string, Dictionary<int, int>>
+    {
+        ["Wan"] = new Dictionary<int, int>{},
+        ["Tong"] = new Dictionary<int, int>{},
+        ["Tiao"] = new Dictionary<int, int>{}
+    };
+    public static Dictionary<String, Dictionary<String, int>> Special = new Dictionary<string, Dictionary<string, int>>
+    {
+        ["Dragon"] = new Dictionary<string, int>{},
+        ["Wind"] = new Dictionary<string, int>{},
+        ["Flower"] = new Dictionary<string, int>{},
+        ["Season"] = new Dictionary<string, int>{}
+    };
+    public static int total = 0;
+}
+
 public class TileCreator : MonoBehaviour
 {
 
     [SerializeField] private TileSettings tileSettings;
     [SerializeField] private GameObject blankTile;
-    private Dictionary<String, object> tileTracker = new Dictionary<string, object>
-    {
-        ["Normal"] = new Dictionary<String, Dictionary<int, int>>{}, // suit -> number -> count
-        ["Special"] = new Dictionary<String, Dictionary<String, int>>{}, // suit -> name -> count
-        ["total"] = 0
-    };
 
     private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row)
     {
@@ -48,8 +62,18 @@ public class TileCreator : MonoBehaviour
 
     /*private String assignSuit()
     {
-        int leftover = tileSettings.TotalTiles - (int) tileTracker["total"];
+        int leftover = tileSettings.TotalTiles - TileTracker.total;
         int n = UnityEngine.Random.Range(1, leftover);
+
+        int wanSum = tileSettings.WanTiles - TileTracker.Normal["Wan"].Sum(pair => pair.Value);
+        int tongSum = tileSettings.TongTiles - TileTracker.Normal["Tong"].Sum(pair => pair.Value);
+        int tiaoSum = tileSettings.TiaoTiles - TileTracker.Normal["Tiao"].Sum(pair => pair.Value);
+
+        int sanYuanSum = tileSettings.SanYuanTiles - TileTracker.Special["Dragon"].Sum(pair => pair.Value);
+        int fengSum = tileSettings.FengTiles - TileTracker.Special["Wind"].Sum(pair => pair.Value);
+        int flowerSum = tileSettings.FlowerTiles - TileTracker.Special["Flower"].Sum(pair => pair.Value);
+        int seasonSum = tileSettings.SeasonTiles - TileTracker.Special["Season"].Sum(pair => pair.Value);
+
 
     }*/
 
