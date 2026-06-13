@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Xml.Schema;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
@@ -7,6 +9,7 @@ using UnityEngine.SocialPlatforms;
 [Serializable]
 public struct Tile
 {
+    public int id;
     public int? number;
     public string suit;
     public string name;
@@ -17,6 +20,12 @@ public class TileCreator : MonoBehaviour
 
     [SerializeField] private TileSettings tileSettings;
     [SerializeField] private GameObject blankTile;
+    private Dictionary<String, object> tileTracker = new Dictionary<string, object>
+    {
+        ["Normal"] = new Dictionary<String, Dictionary<int, int>>{}, // suit -> number -> count
+        ["Special"] = new Dictionary<String, Dictionary<String, int>>{}, // suit -> name -> count
+        ["total"] = 0
+    };
 
     private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row)
     {
@@ -36,6 +45,13 @@ public class TileCreator : MonoBehaviour
         }
         return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row);
     }
+
+    /*private String assignSuit()
+    {
+        int leftover = tileSettings.TotalTiles - (int) tileTracker["total"];
+        int n = UnityEngine.Random.Range(1, leftover);
+
+    }*/
 
     private void CreateTileStack(int stackNum)
     {
