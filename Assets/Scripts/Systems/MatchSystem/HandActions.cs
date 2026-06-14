@@ -8,6 +8,40 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HandActions", menuName = "Scriptable Objects/HandActions")]
 public class HandActions : ScriptableObject
 {
+     public static bool CanWin(Dictionary<string, List<Tile>> hand)
+     {
+          int totalMelds = ContainsCheung(hand).Count + ContainsCheung(hand).Count;
+          string[] noCheck = new string[] {"Flower"};
+          List<Tile> pair = new List<Tile>{};
+          if (totalMelds < 4) { return false; }
+
+          foreach (string suit in hand.Keys)
+          {
+               List<Tile> suitTiles = hand[suit];
+               if (noCheck.Contains(suit)) { continue; }
+
+               foreach(Tile tile in suitTiles)
+               {
+                    if (tile.inCheung || tile.inPong) { continue; }
+                    pair.Add(tile);
+
+                    if (pair.Count > 1) { break; }
+               }
+               if (pair.Count > 1) { break; }
+          }
+          if (pair.Count != 2) { return false; }
+
+          Tile lone1 = pair[0];
+          Tile lone2 = pair[1];
+
+          if (lone1.number.IsUnityNull() && !lone2.number.IsUnityNull()) { return false; }
+          if (!lone1.number.IsUnityNull() && lone2.number.IsUnityNull()) { return false; }
+          if (lone1.number.IsUnityNull() && lone2.number.IsUnityNull() && !lone1.name.Equals(lone2.name)){ return false; }
+          if (lone1.number != lone2.number) { return false; }
+
+          return true;
+     }
+
      public static List<List<Tile>> ContainsPong(Dictionary<string, List<Tile>> hand)
      {
           List<List<Tile>> pongs = new List<List<Tile>>{};
