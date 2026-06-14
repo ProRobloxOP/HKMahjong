@@ -87,9 +87,8 @@ public class PlayerHand : MonoBehaviour
             };
             List<Tile> wall = TileCreator.wall;
             Tile tile = wall[0];
+            TileCreator.DropTile(gameObject, tile.id);
             wall.RemoveAt(0);
-
-            UnityEngine.Object.Destroy(gameObject.transform.Find(tile.id.ToString()).gameObject);
 
             if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
             AddNormalTile(tile);
@@ -99,7 +98,6 @@ public class PlayerHand : MonoBehaviour
     private void SetupPlayerHand()
     {
         AddTilesFromWall(14);
-        print(hand.ToCommaSeparatedString());
     }
 
     void Start()
