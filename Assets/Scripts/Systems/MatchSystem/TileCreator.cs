@@ -38,7 +38,8 @@ class TileTracker
 
 public class TileCreator : MonoBehaviour
 {
-    public static Dictionary<int, Tile> tiles = new Dictionary<int, Tile>{};
+    public static event Action CreatedTilesEvent;
+    public static List<Tile> wall = new List<Tile>{};
     private GameObject blankTile;
 
     private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row)
@@ -166,7 +167,7 @@ public class TileCreator : MonoBehaviour
                 Vector3 localScale = transform.localScale;
 
                 int tileNumber = (row*column*(stackNum+1));
-                tiles[tileNumber] = AssignNewTile(tileNumber);
+                wall.Add(AssignNewTile(tileNumber));
                 
                 transform.localScale = new Vector3(
                     localScale.x*TileSettings.general["Scale"],
@@ -193,6 +194,8 @@ public class TileCreator : MonoBehaviour
     {
         blankTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/Blank.prefab");
         CreateTiles();
+        CreatedTilesEvent?.Invoke();
+        print("Adding tiles to hand!");
     }
 
     // Update is called once per frame
