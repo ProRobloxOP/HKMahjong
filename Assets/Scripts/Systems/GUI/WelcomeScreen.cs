@@ -8,6 +8,7 @@ using UnityEngine.UIElements;
 public class WelcomeScreen : MonoBehaviour, IPointerClickHandler
 {
       private GameObject buttonsObject;
+      private GameObject handGUIObject;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
       {;
@@ -15,6 +16,7 @@ public class WelcomeScreen : MonoBehaviour, IPointerClickHandler
             rectTransform.sizeDelta = new Vector3(10, 6, 8);
 
             buttonsObject = gameObject.transform.parent.Find("Buttons").gameObject;
+            handGUIObject = gameObject.transform.parent.Find("TileHand").gameObject;
       }
 
      // Update is called once per frame
@@ -27,6 +29,7 @@ public class WelcomeScreen : MonoBehaviour, IPointerClickHandler
       {
             gameObject.SetActive(false);
             buttonsObject.SetActive(true);
+            handGUIObject.SetActive(true);
       }
 
 }
