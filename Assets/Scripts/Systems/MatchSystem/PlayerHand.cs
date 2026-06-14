@@ -11,11 +11,66 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
+[Serializable]
+public struct HandRank
+{
+    public int points;
+    public float chance;
+}
+
 [CreateAssetMenu(fileName = "PlayerHand", menuName = "Scriptable Objects/PlayerHand")]
 public class PlayerHand : ScriptableObject
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    private Dictionary<string, List<Tile>> hand = new Dictionary<string, List<Tile>>
+    private Dictionary<string, Func<PlayerHand, HandRank>> handPoints = new Dictionary<string, Func<PlayerHand, HandRank>>
+    {
+        ["All Flowers / All Seasons"] = HandCombos.AllFlowers,
+        ["Eight Flowers"] = HandCombos.EightFlowers,
+        ["Seven Flowers"] = () => {},
+        ["No Flower"] = () => {},
+        ["Main Flower"] = () => {},
+
+        ["Zi Mo"] = () => {},
+        ["Concealed Hand"] = () => {},
+
+        ["Robbing The Kong"] = () => {},
+        ["Win By Kong Replacement"] = () => {},
+        ["Double Kong Replacement"] = () => {},
+
+        ["Moon Under The Sea"] = () => {},
+
+        ["All Concealed Triplets"] = () => {},
+        ["All Quadruplets"] = () => {},
+        ["All Triplets"] = () => {},
+        ["All Sequences"] = () => {},
+
+        ["Big Three Dragons"] = () => {},
+        ["Small Three Dragons"] = () => {},
+
+        ["Red Dragon"] = () => {},
+        ["White Dragon"] = () => {},
+        ["Green Dragon"] = () => {},
+
+        ["Small Four Winds"] = () => {},
+        ["Big Four Winds"] = () => {},
+        ["Round Wind"] = () => {},
+        ["Seat Wind"] = () => {},
+
+        ["Mixed Flush"] = () => {},
+        ["Full Flush"] = () => {},
+
+        ["All Honors"] = () => {},
+        ["All Terminals"] = () => {},
+        ["Mixed Terminals"] = () => {},
+
+        ["Blessing of Heaven"] = () => {},
+        ["Blessing of Earth"] = () => {},
+        ["Blessing of Man"] = () => {},
+
+        ["Nine Gates"] = () => {},
+        ["Thirteen Orphans"] = () => {},
+        ["Seven Pairs"] = () => {}
+    };
+    public Dictionary<string, List<Tile>> hand = new Dictionary<string, List<Tile>>
     {
         ["Char"] = new List<Tile>{},
         ["Circle"] = new List<Tile>{},
@@ -26,6 +81,7 @@ public class PlayerHand : ScriptableObject
         ["Flower"] = new List<Tile>{}
     }; // suit -> Tile
     private GameObject Tiles;
+    private bool conclead;
 
     private int CompareOrder(String[] order, Tile tile1, Tile tile2)
     {
@@ -88,7 +144,9 @@ public class PlayerHand : ScriptableObject
             };
             List<Tile> wall = TileCreator.wall;
             Tile tile = wall[0];
+
             TileCreator.DropTile(Tiles, tile.id);
+            if (wall.Count() == 0) { return; }
             wall.RemoveAt(0);
 
             if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
@@ -99,7 +157,9 @@ public class PlayerHand : ScriptableObject
     public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles)
     {
         this.Tiles = Tiles;
+        conclead = true;
         DrawTilesFromWall(14);
+
         return hand;
     }
 

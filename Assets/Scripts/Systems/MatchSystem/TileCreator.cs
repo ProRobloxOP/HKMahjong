@@ -16,6 +16,9 @@ public class Tile
     public int? number;
     public string suit;
     public string name;
+    public bool fromWall;
+    public bool lastTile;
+    public bool robbed;
 
     private String WindToString()
     {
@@ -196,6 +199,9 @@ public class TileCreator : MonoBehaviour
     {
         String suit = AssignRandomSuit();
         Tile tile = (!TileTracker.Normal.ContainsKey(suit))? AssignSpecialTile(suit) : AssignNormalTile(suit);
+        tile.lastTile = (id == TileSettings.general["Total"])? true : false;
+        tile.fromWall = true;
+        tile.robbed = false;
         tile.id = id;
 
         return tile;

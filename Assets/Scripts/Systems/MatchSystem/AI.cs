@@ -6,10 +6,12 @@ public class AI : MonoBehaviour
 
     private void OnEnable() => TileCreator.CreatedTilesEvent += SetupHand;
     private void OnDisable() => TileCreator.CreatedTilesEvent -= SetupHand;
+    private PlayerHand hand = PlayerHand.CreateInstance<PlayerHand>();
+
+    
 
     private void SetupHand()
     {
-        PlayerHand hand = PlayerHand.CreateInstance<PlayerHand>();
         GameObject[] rootObjs = SceneManager.GetActiveScene().GetRootGameObjects();
         GameObject Tiles = null;
 

@@ -5,10 +5,10 @@ public class MainClient : MonoBehaviour
 {
     private void OnEnable() => TileCreator.CreatedTilesEvent += SetupClientHand;
     private void OnDisable() => TileCreator.CreatedTilesEvent -= SetupClientHand;
+    private PlayerHand clientHand = PlayerHand.CreateInstance<PlayerHand>();
 
     private void SetupClientHand()
     {
-        PlayerHand clientHand = PlayerHand.CreateInstance<PlayerHand>();
         GameObject[] rootObjs = SceneManager.GetActiveScene().GetRootGameObjects();
         GameObject Tiles = null;
 
