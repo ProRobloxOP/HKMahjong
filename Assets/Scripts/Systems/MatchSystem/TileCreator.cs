@@ -167,7 +167,8 @@ public class TileCreator : MonoBehaviour
     private Tile AssignSpecialTile(String suit)
     {
         Dictionary<String, int> usedTiles = TileTracker.Special[suit];
-        String[] tileTypes = (suit.Equals("Dragon"))? new string[] {"White", "Red", "Green"} : new string[] {"1", "2", "3", "4"};
+        String[] tileTypes = (suit.Equals("Dragon"))? new string[] {"White", "Red", "Green"}: 
+            (suit.Equals("Wind"))? new string[] {"East", "South", "North", "West"} : new string[] {"1", "2", "3", "4"};
         int total = (int) TileSettings.general[suit] - usedTiles.Sum(pair => pair.Value);
         int n = UnityEngine.Random.Range(1, total);
         String name = "";
@@ -237,7 +238,6 @@ public class TileCreator : MonoBehaviour
     public static void DropTile(GameObject tiles, int id)
     {
         UnityEngine.Object.Destroy(tiles.transform.Find(id.ToString()).gameObject);
-        print(id % 2);
         if (id + 1 > TileSettings.general["Total"] || id % 2 == 0){ return; }
 
         GameObject nextTile = tiles.transform.Find((id + 1).ToString()).gameObject;
