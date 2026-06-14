@@ -90,6 +90,8 @@ public class PlayerHand : MonoBehaviour
             TileCreator.DropTile(gameObject, tile.id);
             wall.RemoveAt(0);
 
+            print(tile.ToString());
+
             if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
             DrawNormalTile(tile);
         }
