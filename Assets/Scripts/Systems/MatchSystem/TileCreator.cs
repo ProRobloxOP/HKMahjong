@@ -10,12 +10,57 @@ using UnityEngine;
 using UnityEngine.SocialPlatforms;
 
 [Serializable]
-public struct Tile
+public class Tile
 {
     public int id;
     public int? number;
     public string suit;
     public string name;
+
+    private String WindToString()
+    {
+        return name;
+    }
+
+    private String NormalToString()
+    {
+        return number.ToString() + suit[0];
+    }
+
+    private String CharToString()
+    {
+        return number + "M";
+    }
+
+    private String FlowerToString()
+    {
+        return name + "F";
+    }
+    
+    private String SeasonToString()
+    {
+        return name + "T";
+    }
+
+    private String DragonToString()
+    {
+        return name[0] + "D";
+    }
+
+    override public String ToString()
+    {
+        Dictionary<String, Func<String>> toStringTypes = new Dictionary<string, Func<String>>
+        {
+            ["Char"] = CharToString,
+            ["Dragon"] = DragonToString,
+            ["Wind"] = WindToString,
+            ["Season"] = SeasonToString,
+            ["Flower"] = FlowerToString
+        };
+
+        if (toStringTypes.ContainsKey(suit)) { return toStringTypes[suit](); }
+        return NormalToString();
+    }
 }
 
 class TileTracker
