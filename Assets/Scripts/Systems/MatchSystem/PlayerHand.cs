@@ -89,6 +89,8 @@ public class PlayerHand : MonoBehaviour
             Tile tile = wall[0];
             wall.RemoveAt(0);
 
+            UnityEngine.Object.Destroy(gameObject.transform.parent.parent.Find("Tiles").Find(tile.id.ToString()).gameObject);
+
             if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); }
             AddNormalTile(tile);
         }
