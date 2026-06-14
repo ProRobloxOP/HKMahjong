@@ -2,15 +2,31 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using Mono.Cecil;
+using Unity.Burst;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.Rendering;
 
 public class PlayerHand : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    static public Dictionary<string, Tile[]> hand = new Dictionary<string, Tile[]>(); // suit -> Tile
+    static public Dictionary<string, List<Tile>> hand = new Dictionary<string, List<Tile>>
+    {
+        ["Char"] = new List<Tile>{},
+        ["Circle"] = new List<Tile>{},
+        ["Stick"] = new List<Tile>{},
 
-    private int compareOrder(String[] order, Tile tile1, Tile tile2)
+        ["Dragon"] = new List<Tile>{},
+        ["Wind"] = new List<Tile>{},
+        ["Flower"] = new List<Tile>{}
+    }; // suit -> Tile
+    private void OnEnable() => TileCreator.CreatedTilesEvent += SetupPlayerHand;
+    private void OnDisable() => TileCreator.CreatedTilesEvent -= SetupPlayerHand;
+
+    private int CompareOrder(String[] order, Tile tile1, Tile tile2)
     {
         String name1 = tile1.name;
         String name2 = tile2.name;
@@ -25,38 +41,65 @@ public class PlayerHand : MonoBehaviour
         return -1;
     }
     
-    private void addFlower(Tile tile)
+    private void AddFlower(Tile tile)
     {
-        Tile[] flowerTiles = hand["Flowers"];
+        List<Tile> flowerTiles = hand["Flower"];
         flowerTiles.Append(tile);
-
-        //Add another tile
+        AddTilesFromWall(1);
     }
 
-    private void addNormalTile(Tile tile, String suit)
+    private void AddNormalTile(Tile tile)
     {
-        Tile[] suitTiles = hand[suit];
+        List<Tile> suitTiles = hand[tile.suit];
         suitTiles.Append(tile);
 
-        Array.Sort(suitTiles, (tile1, tile2) => ((int) tile1.number).CompareTo(tile2.number));
+        suitTiles.Sort((tile1, tile2) => ((int) tile1.number).CompareTo(tile2.number));
     }
 
-    private void addDragonTile(Tile tile)
+    private void AddDragonTile(Tile tile)
     {
-        Tile[] dragonTiles = hand["Dragons"];
+        List<Tile> dragonTiles = hand["Dragon"];
         String[] order = {"White", "Green", "Red"};
         dragonTiles.Append(tile);
 
-        Array.Sort(dragonTiles, (tile1, tile2) => compareOrder(order, tile1, tile2));
+        dragonTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
     }
 
-    private void addWindTile(Tile tile)
+    private void AddWindTile(Tile tile)
     {
-        Tile[] windTiles = hand["Winds"];
+        List<Tile> windTiles = hand["Wind"];
         String[] order = {"East", "South", "West", "North"};
         windTiles.Append(tile);
 
-        Array.Sort(windTiles, (tile1, tile2) => compareOrder(order, tile1, tile2));
+        windTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
+    }
+
+    private void AddTilesFromWall(int iterations)
+    {
+        for (int i = 0; i < iterations; i++)
+        {
+            Dictionary<String, Action<Tile>> addMethods = new Dictionary<String, Action<Tile>>
+            {
+                ["Dragon"] = AddDragonTile,
+                ["Wind"] = AddWindTile,
+                ["Flower"] = AddFlower,
+                ["Season"] = AddFlower
+            };
+            List<Tile> wall = TileCreator.wall;
+            Tile tile = wall[0];
+            wall.RemoveAt(0);
+
+            UnityEngine.Object.Destroy(gameObject.transform.Find(tile.id.ToString()).gameObject);
+
+            if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
+            AddNormalTile(tile);
+        }
+    }
+
+    private void SetupPlayerHand()
+    {
+        AddTilesFromWall(14);
+        print(hand.ToCommaSeparatedString());
     }
 
     void Start()
