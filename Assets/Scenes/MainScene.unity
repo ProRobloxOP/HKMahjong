@@ -1485,8 +1485,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cb3730397d254c2694f55d5331a1e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileCreator
-  tileSettings: {fileID: 11400000, guid: f32e547ba89fc43eab48599afc94210d, type: 2}
-  blankTile: {fileID: 6021323522123798293, guid: 31f18643da5aa4082b7a890d4b1f08a0, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
