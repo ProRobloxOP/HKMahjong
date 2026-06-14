@@ -6,6 +6,8 @@ using System.Linq.Expressions;
 using Mono.Cecil;
 using Unity.Burst;
 using Unity.VisualScripting;
+using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.Rendering;
@@ -80,6 +82,13 @@ public class PlayerHand : ScriptableObject
         ["Wind"] = new List<Tile>{},
         ["Flower"] = new List<Tile>{}
     }; // suit -> Tile
+    public List<Tile>[] droppedTiles = new List<Tile>[]
+    {
+        new List<Tile>{},
+        new List<Tile>{},
+        new List<Tile>{},
+        new List<Tile>{}
+    };
     public static event Action<int, Tile> PlayerDroppedTile;
     private GameObject Tiles;
     //private bool allConcealed;
@@ -162,13 +171,25 @@ public class PlayerHand : ScriptableObject
         return new List<Tile>[] { HandActions.CanPong(tiles, tile), HandActions.CanCheung(tiles, tile) };
     }
 
-    public void DropTile(Tile tile)
+    private void VisualizeDrop(int playerIndex, Tile tile)
+    {
+        DropRow dropRow = TileSettings.dropSetting[playerIndex - 1];
+        List<Tile> playerDropped = droppedTiles[playerIndex - 1];
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/" + tile.ToString() + ".prefab");
+
+        GameObject tileObj = TileCreator.CreateTile(prefab, dropRow.pos, dropRow.rot, tile.id);
+        tileObj.transform.position = TileCreator.SetTilePos(tileObj, playerDropped.Count + 1, 1, dropRow.axis, dropRow.direction);
+        playerDropped.Add(tile);
+    }
+
+    public void DropTile(int playerIndex, Tile tile)
     {
         List<Tile> suitList = tiles[tile.suit];
         suitList.Remove(tile);
         tile.open = true;
 
         PlayerDroppedTile?.Invoke(playerIndex, tile);
+        VisualizeDrop(playerIndex, tile);
     }
 
     public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex)

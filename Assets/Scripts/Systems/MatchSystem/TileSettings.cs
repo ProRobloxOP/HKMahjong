@@ -51,7 +51,7 @@ public class TileSettings : ScriptableObject
     {
         new DropRow
         {
-            pos = new Vector3(-73, 4, 70),
+            pos = new Vector3(-183, 40, 300),
             rot = Quaternion.Euler(new Vector3(180, 0, 90)),
             axis = "x",
             direction = 1,
@@ -59,7 +59,7 @@ public class TileSettings : ScriptableObject
         },
         new DropRow
         {
-            pos = new Vector3(102, 4, 105),
+            pos = new Vector3(57, 40, 335),
             rot = Quaternion.Euler(new Vector3(180, 90, 90)),
             axis = "z",
             direction = 1,
@@ -67,7 +67,7 @@ public class TileSettings : ScriptableObject
         },
         new DropRow
         {
-            pos = new Vector3(85, 4, 270),
+            pos = new Vector3(20, 40, 500),
             rot = Quaternion.Euler(new Vector3(180, 0, 90)),
             axis = "x",
             direction = -1,
@@ -75,8 +75,8 @@ public class TileSettings : ScriptableObject
         },
         new DropRow
         {
-            pos = new Vector3(-65, 4, 260),
-            rot = Quaternion.Euler(new Vector3(180, 90, 90)),
+            pos = new Vector3(-145, 40, 490),
+            rot = Quaternion.Euler(new Vector3(180, 270, 90)),
             axis = "z",
             direction = -1,
             maxColumn = 6
