@@ -97,17 +97,17 @@ public class TileCreator : MonoBehaviour
     public static List<Tile> wall = new List<Tile>{};
     private GameObject blankTile;
 
-    private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
+    private static Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
     {
         return new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z);
     }
 
-    private Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
+    private static Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
     {
         return new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]);
     }
 
-    private Vector3 SetTilePos(GameObject tile, int column, int row, String axis, int direction)
+    public static Vector3 SetTilePos(GameObject tile, int column, int row, String axis, int direction)
     {
         if (axis == "x")
         {
@@ -217,6 +217,23 @@ public class TileCreator : MonoBehaviour
         return tile;
     }
 
+    public static GameObject CreateTile(GameObject prefab, Vector3 pos, Quaternion rot, int tileNumber)
+    {
+        GameObject tile = Instantiate(prefab, pos, rot);
+        Transform transform = tile.transform;
+        Vector3 localScale = transform.localScale;
+        
+        transform.localScale = new Vector3(
+            localScale.x*TileSettings.general["Scale"],
+            localScale.y*TileSettings.general["Scale"],
+            localScale.z*TileSettings.general["Scale"]
+        );
+
+        tile.name = tileNumber.ToString();
+        transform.SetParent(GameObject.Find("Tiles").transform, true);
+        return tile;
+    }
+
     private void CreateTileStack(int stackNum)
     {
         for (int column = 1; column <= TileSettings.general["ColumnStack"]; column++)
@@ -224,21 +241,11 @@ public class TileCreator : MonoBehaviour
             for (int row = 1; row <= TileSettings.general["RowStack"]; row++)
             {
                 TileStack tileStack = TileSettings.boardSetting[stackNum];
-                GameObject tile = Instantiate(blankTile, tileStack.pos, TileSettings.boardSetting[stackNum].rot);
-                Transform transform = tile.transform;
-                Vector3 localScale = transform.localScale;
-
                 int tileNumber = wall.Count() + 1;
                 wall.Add(AssignNewTile(tileNumber));
-                
-                transform.localScale = new Vector3(
-                    localScale.x*TileSettings.general["Scale"],
-                    localScale.y*TileSettings.general["Scale"],
-                    localScale.z*TileSettings.general["Scale"]
-                );
-                transform.position = SetTilePos(tile, column, row, tileStack.axis, tileStack.direction);
-                tile.name = tileNumber.ToString();
-                transform.SetParent(GameObject.Find("Tiles").transform, true);
+
+                GameObject tile = CreateTile(blankTile, tileStack.pos, TileSettings.boardSetting[stackNum].rot, tileNumber);
+                tile.transform.position = SetTilePos(tile, column, row, tileStack.axis, tileStack.direction);
             }
         }
     }

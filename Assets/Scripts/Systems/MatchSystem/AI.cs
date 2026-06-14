@@ -28,12 +28,12 @@ public class AI : MonoBehaviour
 
         playerHand.SetupPlayerHand(Tiles, playerIndex);
 
-        int n = UnityEngine.Random.Range(0, playerHand.tiles["Char"].Count - 1);
-        Tile tile = playerHand.tiles["Char"][n];
-        playerHand.DropTile(tile);
-
-        print("Cheungs: " + HandActions.ContainsCheung(playerHand.tiles).Count);
-        print("Pongs: " + HandActions.ContainsPong(playerHand.tiles).Count);
+        for (int i = 0; i < 2; i++)
+        {
+            int n = UnityEngine.Random.Range(0, playerHand.tiles["Char"].Count - 1);
+            Tile tile = playerHand.tiles["Char"][n];
+            playerHand.DropTile(playerIndex, tile);
+        }
     } 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
