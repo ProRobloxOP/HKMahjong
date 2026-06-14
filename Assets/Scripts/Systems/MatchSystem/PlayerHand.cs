@@ -9,11 +9,13 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
-public class PlayerHand : MonoBehaviour
+[CreateAssetMenu(fileName = "PlayerHand", menuName = "Scriptable Objects/PlayerHand")]
+public class PlayerHand : ScriptableObject
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    static public Dictionary<string, List<Tile>> hand = new Dictionary<string, List<Tile>>
+    private Dictionary<string, List<Tile>> hand = new Dictionary<string, List<Tile>>
     {
         ["Char"] = new List<Tile>{},
         ["Circle"] = new List<Tile>{},
@@ -23,8 +25,7 @@ public class PlayerHand : MonoBehaviour
         ["Wind"] = new List<Tile>{},
         ["Flower"] = new List<Tile>{}
     }; // suit -> Tile
-    private void OnEnable() => TileCreator.CreatedTilesEvent += SetupPlayerHand;
-    private void OnDisable() => TileCreator.CreatedTilesEvent -= SetupPlayerHand;
+    private GameObject Tiles;
 
     private int CompareOrder(String[] order, Tile tile1, Tile tile2)
     {
@@ -87,19 +88,19 @@ public class PlayerHand : MonoBehaviour
             };
             List<Tile> wall = TileCreator.wall;
             Tile tile = wall[0];
-            TileCreator.DropTile(gameObject, tile.id);
+            TileCreator.DropTile(Tiles, tile.id);
             wall.RemoveAt(0);
-
-            print(tile.ToString());
 
             if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
             DrawNormalTile(tile);
         }
     }
 
-    private void SetupPlayerHand()
+    public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles)
     {
+        this.Tiles = Tiles;
         DrawTilesFromWall(14);
+        return hand;
     }
 
     void Start()
