@@ -21,7 +21,7 @@ public struct HandRank
 [CreateAssetMenu(fileName = "PlayerHand", menuName = "Scriptable Objects/PlayerHand")]
 public class PlayerHand : ScriptableObject
 {
-    private Dictionary<string, Func<PlayerHand, HandRank>> handPoints = new Dictionary<string, Func<PlayerHand, HandRank>>
+    /*private Dictionary<string, Func<PlayerHand, HandRank>> handPoints = new Dictionary<string, Func<PlayerHand, HandRank>>
     {
         ["All Flowers / All Seasons"] = HandCombos.AllFlowers,
         ["Eight Flowers"] = HandCombos.EightFlowers,
@@ -69,8 +69,8 @@ public class PlayerHand : ScriptableObject
         ["Nine Gates"] = () => {},
         ["Thirteen Orphans"] = () => {},
         ["Seven Pairs"] = () => {}
-    };
-    public Dictionary<string, List<Tile>> hand = new Dictionary<string, List<Tile>>
+    };*/
+    public Dictionary<string, List<Tile>> tiles = new Dictionary<string, List<Tile>>
     {
         ["Char"] = new List<Tile>{},
         ["Circle"] = new List<Tile>{},
@@ -80,8 +80,10 @@ public class PlayerHand : ScriptableObject
         ["Wind"] = new List<Tile>{},
         ["Flower"] = new List<Tile>{}
     }; // suit -> Tile
+    public static event Action<int, Tile> PlayerDroppedTile;
     private GameObject Tiles;
-    private bool conclead;
+    //private bool allConcealed;
+    public int playerIndex;
 
     private int CompareOrder(String[] order, Tile tile1, Tile tile2)
     {
@@ -100,33 +102,33 @@ public class PlayerHand : ScriptableObject
     
     private void DrawFlower(Tile tile)
     {
-        List<Tile> flowerTiles = hand["Flower"];
-        flowerTiles.Append(tile);
+        List<Tile> flowerTiles = tiles["Flower"];
+        flowerTiles.Add(tile);
         DrawTilesFromWall(1);
     }
 
     private void DrawNormalTile(Tile tile)
     {
-        List<Tile> suitTiles = hand[tile.suit];
-        suitTiles.Append(tile);
+        List<Tile> suitTiles = tiles[tile.suit];
+        suitTiles.Add(tile);
 
         suitTiles.Sort((tile1, tile2) => ((int) tile1.number).CompareTo(tile2.number));
     }
 
     private void DrawDragonTile(Tile tile)
     {
-        List<Tile> dragonTiles = hand["Dragon"];
+        List<Tile> dragonTiles = tiles["Dragon"];
         String[] order = {"White", "Green", "Red"};
-        dragonTiles.Append(tile);
+        dragonTiles.Add(tile);
 
         dragonTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
     }
 
     private void DrawWindTile(Tile tile)
     {
-        List<Tile> windTiles = hand["Wind"];
+        List<Tile> windTiles = tiles["Wind"];
         String[] order = {"East", "South", "West", "North"};
-        windTiles.Append(tile);
+        windTiles.Add(tile);
 
         windTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
     }
@@ -145,7 +147,7 @@ public class PlayerHand : ScriptableObject
             List<Tile> wall = TileCreator.wall;
             Tile tile = wall[0];
 
-            TileCreator.DropTile(Tiles, tile.id);
+            TileCreator.RemoveTile(Tiles, tile.id);
             if (wall.Count() == 0) { return; }
             wall.RemoveAt(0);
 
@@ -154,13 +156,29 @@ public class PlayerHand : ScriptableObject
         }
     }
 
-    public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles)
+    public List<Tile>[] OnTileDrop(int playerIndex, Tile tile)
     {
+        if (playerIndex == this.playerIndex) { return null; }
+        return new List<Tile>[] { HandActions.CanPong(tiles, tile), HandActions.CanCheung(tiles, tile) };
+    }
+
+    public void DropTile(Tile tile)
+    {
+        List<Tile> suitList = tiles[tile.suit];
+        suitList.Remove(tile);
+        tile.open = true;
+
+        PlayerDroppedTile?.Invoke(playerIndex, tile);
+    }
+
+    public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex)
+    {
+        this.playerIndex = playerIndex;
         this.Tiles = Tiles;
-        conclead = true;
+        //allConcealed = true;
         DrawTilesFromWall(14);
 
-        return hand;
+        return tiles;
     }
 
     void Start()

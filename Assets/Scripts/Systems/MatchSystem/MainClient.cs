@@ -1,11 +1,27 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MainClient : MonoBehaviour
 {
-    private void OnEnable() => TileCreator.CreatedTilesEvent += SetupClientHand;
-    private void OnDisable() => TileCreator.CreatedTilesEvent -= SetupClientHand;
-    private PlayerHand clientHand = PlayerHand.CreateInstance<PlayerHand>();
+    private void OnEnable() 
+    {
+        TileCreator.CreatedTilesEvent += SetupClientHand;
+        PlayerHand.PlayerDroppedTile += OnTileDrop;
+    }
+    private void OnDisable() 
+    { 
+        TileCreator.CreatedTilesEvent -= SetupClientHand; 
+        PlayerHand.PlayerDroppedTile -= OnTileDrop;
+    }
+
+
+    private PlayerHand clientHand;
+
+    private void OnTileDrop(int playerIndex, Tile tile)
+    {
+        clientHand.OnTileDrop(playerIndex, tile);
+    }
 
     private void SetupClientHand()
     {
@@ -21,13 +37,13 @@ public class MainClient : MonoBehaviour
             }
         }
 
-        clientHand.SetupPlayerHand(Tiles);
+        clientHand.SetupPlayerHand(Tiles, 1);
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        clientHand = PlayerHand.CreateInstance<PlayerHand>();
     }
 
     // Update is called once per frame

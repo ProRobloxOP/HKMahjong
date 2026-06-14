@@ -16,9 +16,15 @@ public class Tile
     public int? number;
     public string suit;
     public string name;
+
+    public bool open;
+
     public bool fromWall;
     public bool lastTile;
     public bool robbed;
+
+    public bool inCheung;
+    public bool inPong;
 
     private String WindToString()
     {
@@ -87,26 +93,27 @@ class TileTracker
 public class TileCreator : MonoBehaviour
 {
     public static event Action CreatedTilesEvent;
+    public static List<Tile> dropped = new List<Tile>{};
     public static List<Tile> wall = new List<Tile>{};
     private GameObject blankTile;
 
-    private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row)
+    private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
     {
-        return new Vector3(tileTransform.position.x + (column-1)*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z);
+        return new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z);
     }
 
-    private Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row)
+    private Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
     {
-        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*tileBounds.z*TileSettings.general["AxisSpacing"]);
+        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]);
     }
 
-    private Vector3 SetTilePos(GameObject tile, int column, int row, String axis)
+    private Vector3 SetTilePos(GameObject tile, int column, int row, String axis, int direction)
     {
         if (axis == "x")
         {
-            return SetTilePosX(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row);
+            return SetTilePosX(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction);
         }
-        return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row);
+        return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction);
     }
 
     private String AssignRandomSuit()
@@ -201,7 +208,10 @@ public class TileCreator : MonoBehaviour
         Tile tile = (!TileTracker.Normal.ContainsKey(suit))? AssignSpecialTile(suit) : AssignNormalTile(suit);
         tile.lastTile = (id == TileSettings.general["Total"])? true : false;
         tile.fromWall = true;
+        tile.inCheung = false;
+        tile.inPong = false;
         tile.robbed = false;
+        tile.open = false;
         tile.id = id;
 
         return tile;
@@ -226,7 +236,7 @@ public class TileCreator : MonoBehaviour
                     localScale.y*TileSettings.general["Scale"],
                     localScale.z*TileSettings.general["Scale"]
                 );
-                transform.position = SetTilePos(tile, column, row,tileStack.axis);
+                transform.position = SetTilePos(tile, column, row, tileStack.axis, tileStack.direction);
                 tile.name = tileNumber.ToString();
                 transform.SetParent(GameObject.Find("Tiles").transform, true);
             }
@@ -241,7 +251,7 @@ public class TileCreator : MonoBehaviour
         }
     }
 
-    public static void DropTile(GameObject tiles, int id)
+    public static void RemoveTile(GameObject tiles, int id)
     {
         UnityEngine.Object.Destroy(tiles.transform.Find(id.ToString()).gameObject);
         if (id + 1 > TileSettings.general["Total"] || id % 2 == 0){ return; }

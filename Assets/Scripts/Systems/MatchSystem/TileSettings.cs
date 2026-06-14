@@ -9,6 +9,17 @@ public struct TileStack
     public Vector3 pos;
     public Quaternion rot;
     public String axis;
+    public int direction;
+}
+
+[System.Serializable]
+public struct DropRow
+{
+    public Vector3 pos;
+    public Quaternion rot;
+    public String axis;
+    public int direction;
+    public int maxColumn;
 }
 
 [CreateAssetMenu(fileName = "TileSettings", menuName = "Scriptable Objects/TileSettings")]
@@ -36,34 +47,74 @@ public class TileSettings : ScriptableObject
         ["MaxRepeat"] = 4
     };
 
+    public static DropRow[] dropSetting = new DropRow[]
+    {
+        new DropRow
+        {
+            pos = new Vector3(-73, 4, 70),
+            rot = Quaternion.Euler(new Vector3(180, 0, 90)),
+            axis = "x",
+            direction = 1,
+            maxColumn = 8
+        },
+        new DropRow
+        {
+            pos = new Vector3(102, 4, 105),
+            rot = Quaternion.Euler(new Vector3(180, 90, 90)),
+            axis = "z",
+            direction = 1,
+            maxColumn = 6
+        },
+        new DropRow
+        {
+            pos = new Vector3(85, 4, 270),
+            rot = Quaternion.Euler(new Vector3(180, 0, 90)),
+            axis = "x",
+            direction = -1,
+            maxColumn = 8
+        },
+        new DropRow
+        {
+            pos = new Vector3(-65, 4, 260),
+            rot = Quaternion.Euler(new Vector3(180, 90, 90)),
+            axis = "z",
+            direction = -1,
+            maxColumn = 6
+        }
+    };
+
     public static TileStack[] boardSetting =
     {
         new TileStack
         {
-            pos = new Vector3(-245, 40, 220),
+            pos = new Vector3(200.5f, 40, 220),
             rot = Quaternion.Euler(new Vector3(0, 0, 90)),
-            axis = "x"
+            axis = "x",
+            direction = -1
         },
 
         new TileStack
         {
-            pos = new Vector3(-277.5f, 40, 215),
+            pos = new Vector3(-277.5f, 40, 217),
             rot = Quaternion.Euler(new Vector3(0, 90, 90)),
-            axis = "z"
-        },
-
-        new TileStack
-        {
-            pos = new Vector3(233, 40, 215),
-            rot = Quaternion.Euler(new Vector3(0, 90, 90)),
-            axis = "z"
+            axis = "z",
+            direction = 1
         },
 
         new TileStack
         {
             pos = new Vector3(-245, 40, 660),
             rot = Quaternion.Euler(new Vector3(0, 0, 90)),
-            axis = "x"
-        }
+            axis = "x",
+            direction = 1
+        },
+
+        new TileStack
+        {
+            pos = new Vector3(233, 40, 663),
+            rot = Quaternion.Euler(new Vector3(0, 90, 90)),
+            axis = "z",
+            direction = -1
+        },
     };
 }
