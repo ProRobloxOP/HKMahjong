@@ -16,24 +16,24 @@ public class TileSettings : ScriptableObject
 {
     public static Dictionary<String, float> general = new Dictionary<string, float>
     {
-        ["total"] = 144,
+        ["Total"] = 144,
 
-        ["char"] = 36,
-        ["circle"] = 36,
-        ["stick"] = 36,
+        ["Char"] = 36,
+        ["Circle"] = 36,
+        ["Stick"] = 36,
 
-        ["dragon"] = 12,
-        ["wind"] = 16,
-        ["season"] = 4,
-        ["flower"] = 4,
+        ["Dragon"] = 12,
+        ["Wind"] = 16,
+        ["Season"] = 4,
+        ["Flower"] = 4,
 
-        ["columnStack"] = 18,
-        ["rowStack"] = 2,
+        ["ColumnStack"] = 18,
+        ["RowStack"] = 2,
 
-        ["axisSpacing"] = 1.10f,
-        ["ySpacing"] = 1.04f,
-        ["scale"] = 6.5f,
-        ["maxRepeat"] = 4
+        ["AxisSpacing"] = 1.01f,
+        ["YSpacing"] = 1.04f,
+        ["Scale"] = 6.5f,
+        ["MaxRepeat"] = 4
     };
 
     public static TileStack[] boardSetting =
