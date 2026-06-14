@@ -91,7 +91,7 @@ public class PlayerHand : MonoBehaviour
 
             UnityEngine.Object.Destroy(gameObject.transform.Find(tile.id.ToString()).gameObject);
 
-            if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); }
+            if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
             AddNormalTile(tile);
         }
     }
