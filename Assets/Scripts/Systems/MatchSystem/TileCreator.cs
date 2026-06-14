@@ -10,12 +10,57 @@ using UnityEngine;
 using UnityEngine.SocialPlatforms;
 
 [Serializable]
-public struct Tile
+public class Tile
 {
     public int id;
     public int? number;
     public string suit;
     public string name;
+
+    private String WindToString()
+    {
+        return name;
+    }
+
+    private String NormalToString()
+    {
+        return number.ToString() + suit[0];
+    }
+
+    private String CharToString()
+    {
+        return number + "M";
+    }
+
+    private String FlowerToString()
+    {
+        return name + "F";
+    }
+    
+    private String SeasonToString()
+    {
+        return name + "T";
+    }
+
+    private String DragonToString()
+    {
+        return name[0] + "D";
+    }
+
+    override public String ToString()
+    {
+        Dictionary<String, Func<String>> toStringTypes = new Dictionary<string, Func<String>>
+        {
+            ["Char"] = CharToString,
+            ["Dragon"] = DragonToString,
+            ["Wind"] = WindToString,
+            ["Season"] = SeasonToString,
+            ["Flower"] = FlowerToString
+        };
+
+        if (toStringTypes.ContainsKey(suit)) { return toStringTypes[suit](); }
+        return NormalToString();
+    }
 }
 
 class TileTracker
@@ -44,12 +89,12 @@ public class TileCreator : MonoBehaviour
 
     private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row)
     {
-        return new Vector3(tileTransform.position.x + (column-1)*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row -1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z);
+        return new Vector3(tileTransform.position.x + (column-1)*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z);
     }
 
     private Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row)
     {
-        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row -1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*tileBounds.z*TileSettings.general["AxisSpacing"]);
+        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*tileBounds.z*TileSettings.general["AxisSpacing"]);
     }
 
     private Vector3 SetTilePos(GameObject tile, int column, int row, String axis)
@@ -157,16 +202,16 @@ public class TileCreator : MonoBehaviour
 
     private void CreateTileStack(int stackNum)
     {
-        for (int row = 1; row <= TileSettings.general["RowStack"]; row++)
+        for (int column = 1; column <= TileSettings.general["ColumnStack"]; column++)
         {
-            for (int column = 1; column <= TileSettings.general["ColumnStack"]; column++)
+            for (int row = 1; row <= TileSettings.general["RowStack"]; row++)
             {
                 TileStack tileStack = TileSettings.boardSetting[stackNum];
                 GameObject tile = Instantiate(blankTile, tileStack.pos, TileSettings.boardSetting[stackNum].rot);
                 Transform transform = tile.transform;
                 Vector3 localScale = transform.localScale;
 
-                int tileNumber = (row*column*(stackNum+1));
+                int tileNumber = wall.Count() + 1;
                 wall.Add(AssignNewTile(tileNumber));
                 
                 transform.localScale = new Vector3(
@@ -174,7 +219,7 @@ public class TileCreator : MonoBehaviour
                     localScale.y*TileSettings.general["Scale"],
                     localScale.z*TileSettings.general["Scale"]
                 );
-                transform.position = SetTilePos(tile, column, row, tileStack.axis);
+                transform.position = SetTilePos(tile, column, row,tileStack.axis);
                 tile.name = tileNumber.ToString();
                 transform.SetParent(GameObject.Find("Tiles").transform, true);
             }
@@ -189,13 +234,25 @@ public class TileCreator : MonoBehaviour
         }
     }
 
+    public static void DropTile(GameObject tiles, int id)
+    {
+        UnityEngine.Object.Destroy(tiles.transform.Find(id.ToString()).gameObject);
+        print(id % 2);
+        if (id + 1 > TileSettings.general["Total"] || id % 2 == 0){ return; }
+
+        GameObject nextTile = tiles.transform.Find((id + 1).ToString()).gameObject;
+        Vector3 tileBounds = nextTile.GetComponent<Renderer>().bounds.size;
+        Transform transform = nextTile.transform;
+        Vector3 pos = transform.position;
+        transform.position = new Vector3(pos.x, pos.y - tileBounds.y*TileSettings.general["YSpacing"], pos.z);
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         blankTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/Blank.prefab");
         CreateTiles();
         CreatedTilesEvent?.Invoke();
-        print("Adding tiles to hand!");
     }
 
     // Update is called once per frame

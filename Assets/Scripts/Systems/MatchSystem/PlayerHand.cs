@@ -41,14 +41,14 @@ public class PlayerHand : MonoBehaviour
         return -1;
     }
     
-    private void AddFlower(Tile tile)
+    private void DrawFlower(Tile tile)
     {
         List<Tile> flowerTiles = hand["Flower"];
         flowerTiles.Append(tile);
-        AddTilesFromWall(1);
+        DrawTilesFromWall(1);
     }
 
-    private void AddNormalTile(Tile tile)
+    private void DrawNormalTile(Tile tile)
     {
         List<Tile> suitTiles = hand[tile.suit];
         suitTiles.Append(tile);
@@ -56,7 +56,7 @@ public class PlayerHand : MonoBehaviour
         suitTiles.Sort((tile1, tile2) => ((int) tile1.number).CompareTo(tile2.number));
     }
 
-    private void AddDragonTile(Tile tile)
+    private void DrawDragonTile(Tile tile)
     {
         List<Tile> dragonTiles = hand["Dragon"];
         String[] order = {"White", "Green", "Red"};
@@ -65,7 +65,7 @@ public class PlayerHand : MonoBehaviour
         dragonTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
     }
 
-    private void AddWindTile(Tile tile)
+    private void DrawWindTile(Tile tile)
     {
         List<Tile> windTiles = hand["Wind"];
         String[] order = {"East", "South", "West", "North"};
@@ -74,32 +74,30 @@ public class PlayerHand : MonoBehaviour
         windTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
     }
 
-    private void AddTilesFromWall(int iterations)
+    private void DrawTilesFromWall(int iterations)
     {
         for (int i = 0; i < iterations; i++)
         {
             Dictionary<String, Action<Tile>> addMethods = new Dictionary<String, Action<Tile>>
             {
-                ["Dragon"] = AddDragonTile,
-                ["Wind"] = AddWindTile,
-                ["Flower"] = AddFlower,
-                ["Season"] = AddFlower
+                ["Dragon"] = DrawDragonTile,
+                ["Wind"] = DrawWindTile,
+                ["Flower"] = DrawFlower,
+                ["Season"] = DrawFlower
             };
             List<Tile> wall = TileCreator.wall;
             Tile tile = wall[0];
+            TileCreator.DropTile(gameObject, tile.id);
             wall.RemoveAt(0);
 
-            UnityEngine.Object.Destroy(gameObject.transform.Find(tile.id.ToString()).gameObject);
-
             if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
-            AddNormalTile(tile);
+            DrawNormalTile(tile);
         }
     }
 
     private void SetupPlayerHand()
     {
-        AddTilesFromWall(14);
-        print(hand.ToCommaSeparatedString());
+        DrawTilesFromWall(14);
     }
 
     void Start()
