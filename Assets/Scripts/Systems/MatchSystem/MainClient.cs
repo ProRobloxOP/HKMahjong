@@ -72,7 +72,10 @@ public class MainClient : MonoBehaviour
 
     private void DrawTile(int playerIndex)
     {
+<<<<<<< HEAD
         print(playerIndex);
+=======
+>>>>>>> f838cfc2d8ac98c722ff6cb88caf1308f1acd360
         if (playerIndex != this.playerIndex) { return; }
         clientHand.DrawTilesFromWall(1);
         DropTile();
@@ -133,6 +136,10 @@ public class MainClient : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+<<<<<<< HEAD
 
+=======
+        RefreshNextFrame();
+>>>>>>> f838cfc2d8ac98c722ff6cb88caf1308f1acd360
     }
 }

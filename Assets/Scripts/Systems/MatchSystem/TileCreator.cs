@@ -1,62 +1,281 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Xml.Schema;
+using Unity.Mathematics;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
 
+[Serializable]
+public class Tile
+{
+    public int id;
+    public int? number;
+    public string suit;
+    public string name;
+
+    public bool open;
+
+    public bool fromWall;
+    public bool lastTile;
+    public bool robbed;
+
+    public bool inCheung;
+    public bool inPong;
+
+    private String WindToString()
+    {
+        return name;
+    }
+
+    private String NormalToString()
+    {
+        return number.ToString() + suit[0];
+    }
+
+    private String CharToString()
+    {
+        return number + "M";
+    }
+
+    private String FlowerToString()
+    {
+        return name + "F";
+    }
+    
+    private String SeasonToString()
+    {
+        return name + "T";
+    }
+
+    private String DragonToString()
+    {
+        return name[0] + "D";
+    }
+
+    override public String ToString()
+    {
+        Dictionary<String, Func<String>> toStringTypes = new Dictionary<string, Func<String>>
+        {
+            ["Char"] = CharToString,
+            ["Dragon"] = DragonToString,
+            ["Wind"] = WindToString,
+            ["Season"] = SeasonToString,
+            ["Flower"] = FlowerToString
+        };
+
+        if (toStringTypes.ContainsKey(suit)) { return toStringTypes[suit](); }
+        return NormalToString();
+    }
+}
+
+class TileTracker
+{
+    public static Dictionary<String, Dictionary<int, int>> Normal = new Dictionary<string, Dictionary<int, int>>
+    {
+        ["Char"] = new Dictionary<int, int>{},
+        ["Circle"] = new Dictionary<int, int>{},
+        ["Stick"] = new Dictionary<int, int>{}
+    };
+    public static Dictionary<String, Dictionary<String, int>> Special = new Dictionary<string, Dictionary<string, int>>
+    {
+        ["Dragon"] = new Dictionary<string, int>{},
+        ["Wind"] = new Dictionary<string, int>{},
+        ["Flower"] = new Dictionary<string, int>{},
+        ["Season"] = new Dictionary<string, int>{}
+    };
+    public static int total = 0;
+}
+
 public class TileCreator : MonoBehaviour
 {
+    public static event Action CreatedTilesEvent;
+    public static List<Tile> dropped = new List<Tile>{};
+    public static List<Tile> wall = new List<Tile>{};
+    private GameObject blankTile;
 
-    [SerializeField] private TileSettings tileSettings;
-    [SerializeField] private GameObject blankTile;
-
-    private Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row)
+    private static Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
     {
-        return new Vector3(tileTransform.position.x + (column-1)*tileBounds.x*tileSettings.AxisSpacing, tileTransform.position.y + (row -1)*tileBounds.y*tileSettings.YSpacing, tileTransform.position.z);
+        return new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z);
     }
 
-    private Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row)
+    private static Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
     {
-        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row -1)*tileBounds.y*tileSettings.YSpacing, tileTransform.position.z + (column-1)*tileBounds.z*tileSettings.AxisSpacing);
+        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]);
     }
 
-    private Vector3 SetTilePos(GameObject tile, int column, int row, String axis)
+    public static Vector3 SetTilePos(GameObject tile, int column, int row, String axis, int direction)
     {
         if (axis == "x")
         {
-            return SetTilePosX(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row);
+            return SetTilePosX(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction);
         }
-        return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row);
+        return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction);
+    }
+
+    private String AssignRandomSuit()
+    {
+        Dictionary<String, float> suitSums = new Dictionary<string, float>
+        {
+            ["Char"] = TileSettings.general["Char"] - TileTracker.Normal["Char"].Sum(pair => pair.Value),
+            ["Circle"] = TileSettings.general["Circle"] - TileTracker.Normal["Circle"].Sum(pair => pair.Value),
+            ["Stick"] = TileSettings.general["Stick"] - TileTracker.Normal["Stick"].Sum(pair => pair.Value),
+
+            ["Dragon"] = TileSettings.general["Dragon"] - TileTracker.Special["Dragon"].Sum(pair => pair.Value),
+            ["Wind"] = TileSettings.general["Wind"] - TileTracker.Special["Wind"].Sum(pair => pair.Value),
+            ["Flower"] = TileSettings.general["Flower"] - TileTracker.Special["Flower"].Sum(pair => pair.Value),
+            ["Season"] = TileSettings.general["Season"] - TileTracker.Special["Season"].Sum(pair => pair.Value)
+        };
+        int leftover = (int) TileSettings.general["Total"] - TileTracker.total;
+        float n = UnityEngine.Random.Range(1, leftover);
+
+        foreach (var pair in suitSums)
+        {
+            n -= pair.Value;
+            if (n <= 0) { return pair.Key; }
+        }
+
+        return null;
+    }
+
+    private Tile AssignNormalTile(String suit)
+    {
+        Dictionary<int, int> usedTiles = TileTracker.Normal[suit];
+        Dictionary<String, String> tilePrefixes = new Dictionary<string, string>
+        {
+          ["Char"] = "M",
+          ["Circle"] = "C",
+          ["Stick"] = "S"  
+        };
+        
+        int total = (int) TileSettings.general[suit] - usedTiles.Sum(pair => pair.Value);
+        int n = UnityEngine.Random.Range(1, total);
+        int num = 1;
+
+        for (int i = 1; i <= 9; i++)
+        {
+            int leftover = 4 - ((usedTiles.ContainsKey(i))? usedTiles[i] : 0);
+            n -= leftover;
+            num = i;
+
+            if (n <= 0) { break; }
+        }
+
+        usedTiles[num] = (usedTiles.ContainsKey(num))? usedTiles[num] + 1 : 1;
+        TileTracker.total++;
+
+        return new Tile
+        {
+          number = num,
+          suit = suit  
+        };
+    }
+
+    private Tile AssignSpecialTile(String suit)
+    {
+        Dictionary<String, int> usedTiles = TileTracker.Special[suit];
+        String[] tileTypes = (suit.Equals("Dragon"))? new string[] {"White", "Red", "Green"}: 
+            (suit.Equals("Wind"))? new string[] {"East", "South", "North", "West"} : new string[] {"1", "2", "3", "4"};
+        int total = (int) TileSettings.general[suit] - usedTiles.Sum(pair => pair.Value);
+        int n = UnityEngine.Random.Range(1, total);
+        String name = "";
+
+        foreach (string tileName in tileTypes)
+        {
+            int leftover = 4 - ((usedTiles.ContainsKey(tileName))? usedTiles[tileName] : 0);
+            n -= leftover;
+            name = tileName;
+
+            if (n <= 0) { break; }
+        }
+
+        usedTiles[name] = (usedTiles.ContainsKey(name))? usedTiles[name] + 1 : 1;
+        TileTracker.total++;
+
+        return new Tile
+        {
+            name = name,
+            suit = suit
+        };
+    }
+
+    private Tile AssignNewTile(int id)
+    {
+        String suit = AssignRandomSuit();
+        Tile tile = (!TileTracker.Normal.ContainsKey(suit))? AssignSpecialTile(suit) : AssignNormalTile(suit);
+        tile.lastTile = (id == TileSettings.general["Total"])? true : false;
+        tile.fromWall = true;
+        tile.inCheung = false;
+        tile.inPong = false;
+        tile.robbed = false;
+        tile.open = false;
+        tile.id = id;
+
+        return tile;
+    }
+
+    public static GameObject CreateTile(GameObject prefab, Vector3 pos, Quaternion rot, int tileNumber)
+    {
+        GameObject tile = Instantiate(prefab, pos, rot);
+        Transform transform = tile.transform;
+        Vector3 localScale = transform.localScale;
+        
+        transform.localScale = new Vector3(
+            localScale.x*TileSettings.general["Scale"],
+            localScale.y*TileSettings.general["Scale"],
+            localScale.z*TileSettings.general["Scale"]
+        );
+
+        tile.name = tileNumber.ToString();
+        transform.SetParent(GameObject.Find("Tiles").transform, true);
+        return tile;
     }
 
     private void CreateTileStack(int stackNum)
     {
-        for (int row = 1; row <= tileSettings.RowStack; row++)
+        for (int column = 1; column <= TileSettings.general["ColumnStack"]; column++)
         {
-            for (int column = 1; column <= tileSettings.ColumnStack; column++)
+            for (int row = 1; row <= TileSettings.general["RowStack"]; row++)
             {
-                TileStack tileStack = tileSettings.BoardSetting[stackNum];
-                GameObject tile = Instantiate(blankTile, tileStack.pos, tileSettings.BoardSetting[stackNum].rot);
-                 Transform transform = tile.transform;
-                
-                transform.position = SetTilePos(tile, column, row, tileStack.axis);
-                tile.name = (row*column*(stackNum+1)).ToString();
-                transform.SetParent(GameObject.Find("Tiles").transform, true);
+                TileStack tileStack = TileSettings.boardSetting[stackNum];
+                int tileNumber = wall.Count() + 1;
+                wall.Add(AssignNewTile(tileNumber));
+
+                GameObject tile = CreateTile(blankTile, tileStack.pos, TileSettings.boardSetting[stackNum].rot, tileNumber);
+                tile.transform.position = SetTilePos(tile, column, row, tileStack.axis, tileStack.direction);
             }
         }
     }
 
     public void CreateTiles()
     {
-        for (int i = 0; i < tileSettings.BoardSetting.Length; i++)
+        for (int i = 0; i < TileSettings.boardSetting.Length; i++)
         {
             CreateTileStack(i);
         }
     }
 
+    public static void RemoveTile(GameObject tiles, int id)
+    {
+        UnityEngine.Object.Destroy(tiles.transform.Find(id.ToString()).gameObject);
+        if (id + 1 > TileSettings.general["Total"] || id % 2 == 0){ return; }
+
+        GameObject nextTile = tiles.transform.Find((id + 1).ToString()).gameObject;
+        Vector3 tileBounds = nextTile.GetComponent<Renderer>().bounds.size;
+        Transform transform = nextTile.transform;
+        Vector3 pos = transform.position;
+        transform.position = new Vector3(pos.x, pos.y - tileBounds.y*TileSettings.general["YSpacing"], pos.z);
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        blankTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/Blank.prefab");
         CreateTiles();
+        CreatedTilesEvent?.Invoke();
     }
 
     // Update is called once per frame

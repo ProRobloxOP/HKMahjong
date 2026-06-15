@@ -9,71 +9,112 @@ public struct TileStack
     public Vector3 pos;
     public Quaternion rot;
     public String axis;
+    public int direction;
+}
+
+[System.Serializable]
+public struct DropRow
+{
+    public Vector3 pos;
+    public Quaternion rot;
+    public String axis;
+    public int direction;
+    public int maxColumn;
 }
 
 [CreateAssetMenu(fileName = "TileSettings", menuName = "Scriptable Objects/TileSettings")]
 public class TileSettings : ScriptableObject
 {
-    [SerializeField] private int totalTiles = 144;
-    [SerializeField] private int seasonTiles = 4;
-    [SerializeField] private int flowerTiles = 4;
-    [SerializeField] private int wanTiles = 36;
-    [SerializeField] private int tiaoTiles = 36;
-    [SerializeField] private int tongTiles = 36;
-    [SerializeField] private int sanYuanTiles = 12;
-    [SerializeField] private int fengTiles = 16;
+    public static Dictionary<String, float> general = new Dictionary<string, float>
+    {
+        ["Total"] = 144,
 
-    [SerializeField] private int columnStack = 18;
-    [SerializeField] private int rowStack = 2;
+        ["Char"] = 36,
+        ["Circle"] = 36,
+        ["Stick"] = 36,
 
-    [SerializeField] private float axisSpacing = 1.024f;
-    [SerializeField] private float ySpacing = 1.04f;
+        ["Dragon"] = 12,
+        ["Wind"] = 16,
+        ["Season"] = 4,
+        ["Flower"] = 4,
 
-    [SerializeField] private TileStack[] boardSetting =
+        ["ColumnStack"] = 18,
+        ["RowStack"] = 2,
+
+        ["AxisSpacing"] = 1.01f,
+        ["YSpacing"] = 1.04f,
+        ["Scale"] = 6.5f,
+        ["MaxRepeat"] = 4
+    };
+
+    public static DropRow[] dropSetting = new DropRow[]
+    {
+        new DropRow
+        {
+            pos = new Vector3(-183, 40, 300),
+            rot = Quaternion.Euler(new Vector3(180, 180, 90)),
+            axis = "x",
+            direction = 1,
+            maxColumn = 8
+        },
+        new DropRow
+        {
+            pos = new Vector3(57, 40, 335),
+            rot = Quaternion.Euler(new Vector3(180, 90, 90)),
+            axis = "z",
+            direction = 1,
+            maxColumn = 6
+        },
+        new DropRow
+        {
+            pos = new Vector3(20, 40, 500),
+            rot = Quaternion.Euler(new Vector3(180, 0, 90)),
+            axis = "x",
+            direction = -1,
+            maxColumn = 8
+        },
+        new DropRow
+        {
+            pos = new Vector3(-145, 40, 490),
+            rot = Quaternion.Euler(new Vector3(180, 270, 90)),
+            axis = "z",
+            direction = -1,
+            maxColumn = 6
+        }
+    };
+
+    public static TileStack[] boardSetting =
     {
         new TileStack
         {
-            pos = new Vector3(-245, 40, 220),
-            rot = Quaternion.Euler(new Vector3(-90, 90, 0)),
-            axis = "x"
+            pos = new Vector3(200.5f, 40, 220),
+            rot = Quaternion.Euler(new Vector3(0, 0, 90)),
+            axis = "x",
+            direction = -1
         },
 
         new TileStack
         {
-            pos = new Vector3(-277.5f, 40, 200),
-            rot = Quaternion.Euler(new Vector3(-90, 0, 0)),
-            axis = "z"
-        },
-
-        new TileStack
-        {
-            pos = new Vector3(275, 40, 200),
-            rot = Quaternion.Euler(new Vector3(-90, 0, 0)),
-            axis = "z"
+            pos = new Vector3(-277.5f, 40, 217),
+            rot = Quaternion.Euler(new Vector3(0, 90, 90)),
+            axis = "z",
+            direction = 1
         },
 
         new TileStack
         {
             pos = new Vector3(-245, 40, 660),
-            rot = Quaternion.Euler(new Vector3(-90, -90, 0)),
-            axis = "x"
-        }
+            rot = Quaternion.Euler(new Vector3(0, 0, 90)),
+            axis = "x",
+            direction = 1
+        },
+
+        new TileStack
+        {
+            pos = new Vector3(233, 40, 663),
+            rot = Quaternion.Euler(new Vector3(0, 90, 90)),
+            axis = "z",
+            direction = -1
+        },
     };
-
-    public int TotalTiles => totalTiles;
-    public int SeasonTiles => seasonTiles;
-    public int FlowerTiles => flowerTiles;
-    public int WanTiles => wanTiles;
-    public int TiaoTiles => tiaoTiles;
-    public int TongTiles => tongTiles;
-    public int SanYuanTiles => sanYuanTiles;
-    public int FengTiles => fengTiles;
-    public int ColumnStack => columnStack;
-    public int RowStack => rowStack;
-
-    public float AxisSpacing => axisSpacing;
-    public float YSpacing => ySpacing;
-
-    public TileStack[] BoardSetting => boardSetting;
-
 }
