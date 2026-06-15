@@ -67,6 +67,6 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "HKMajong.slnx",
+    "dotnet.defaultSolution": "HKMahjong.slnx",
     "dotnet.enableWorkspaceBasedDevelopment": false
 }
