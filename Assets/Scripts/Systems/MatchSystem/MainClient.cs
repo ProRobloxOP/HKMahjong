@@ -72,7 +72,6 @@ public class MainClient : MonoBehaviour
 
     private void DrawTile(int playerIndex)
     {
-        print(playerIndex);
         if (playerIndex != this.playerIndex) { return; }
         clientHand.DrawTilesFromWall(1);
         DropTile();
@@ -133,6 +132,6 @@ public class MainClient : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        RefreshNextFrame();
     }
 }
