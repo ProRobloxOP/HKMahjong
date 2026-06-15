@@ -2,9 +2,17 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
+using UnityEditor;
 
 public class MainClient : MonoBehaviour
 {
+
+    public UIDocument tileUI;
+    public VisualTreeAsset tileHand;
+    public VisualTreeAsset tileAsset;
+    private List<string> handList;
+
     private void OnEnable() 
     {
         TileCreator.CreatedTilesEvent += SetupClientHand;
@@ -22,6 +30,7 @@ public class MainClient : MonoBehaviour
     private void OnTileDrop(int playerIndex, Tile tile)
     {
         clientHand.OnTileDrop(playerIndex, tile);
+        refreshHandList(); 
     }
 
     private void SetupClientHand()
