@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -28,11 +30,14 @@ public class AI : MonoBehaviour
 
         playerHand.SetupPlayerHand(Tiles, playerIndex);
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < UnityEngine.Random.Range(1, 5); i++)
         {
-            int n = UnityEngine.Random.Range(0, playerHand.tiles["Char"].Count - 1);
-            Tile tile = playerHand.tiles["Char"][n];
-            playerHand.DropTile(playerIndex, tile);
+            int n = UnityEngine.Random.Range(1, 3);
+            String suit = (n == 1)? "Circle" : (n==2)? "Stick" : "Char";
+            List<Tile> tileList = playerHand.tiles[suit];
+
+            n = UnityEngine.Random.Range(0, tileList.Count - 1);
+            playerHand.DropTile(playerIndex, tileList[n]);
         }
     } 
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -38,6 +39,16 @@ public class MainClient : MonoBehaviour
         }
 
         clientHand.SetupPlayerHand(Tiles, 1);
+
+        for (int i = 0; i < UnityEngine.Random.Range(1, 5); i++)
+        {
+            int n = UnityEngine.Random.Range(1, 4);
+            String suit = (n == 1)? "Circle" : (n==2)? "Stick" : "Char";
+            List<Tile> tileList = clientHand.tiles[suit];
+
+            n = UnityEngine.Random.Range(0, tileList.Count - 1);
+            clientHand.DropTile(1, tileList[n]);
+        }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

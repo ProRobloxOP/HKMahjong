@@ -114,6 +114,7 @@ public class PlayerHand : ScriptableObject
         List<Tile> flowerTiles = tiles["Flower"];
         flowerTiles.Add(tile);
         DrawTilesFromWall(1);
+        tile.open = true;
     }
 
     private void DrawNormalTile(Tile tile)
