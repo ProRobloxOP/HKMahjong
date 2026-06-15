@@ -143,7 +143,7 @@ public class PlayerHand : ScriptableObject
         windTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
     }
 
-    private void DrawTilesFromWall(int iterations)
+    public void DrawTilesFromWall(int iterations)
     {
         for (int i = 0; i < iterations; i++)
         {
@@ -164,12 +164,6 @@ public class PlayerHand : ScriptableObject
             if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
             DrawNormalTile(tile);
         }
-    }
-
-    public List<Tile>[] OnTileDrop(int playerIndex, Tile tile)
-    {
-        if (playerIndex == this.playerIndex) { return null; }
-        return new List<Tile>[] { HandActions.CanPong(tiles, tile), HandActions.CanCheung(tiles, tile) };
     }
 
     private void VisualizeDrop(int playerIndex, Tile tile)
@@ -201,16 +195,5 @@ public class PlayerHand : ScriptableObject
         DrawTilesFromWall(14);
 
         return tiles;
-    }
-
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

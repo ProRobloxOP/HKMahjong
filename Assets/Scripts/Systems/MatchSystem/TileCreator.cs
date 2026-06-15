@@ -275,7 +275,7 @@ public class TileCreator : MonoBehaviour
     {
         blankTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/Blank.prefab");
         CreateTiles();
-        //CreatedTilesEvent?.Invoke();
+        CreatedTilesEvent?.Invoke();
     }
 
     // Update is called once per frame

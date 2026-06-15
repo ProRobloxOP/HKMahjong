@@ -12,26 +12,21 @@ public class MainClient : MonoBehaviour
     public VisualTreeAsset tileHand;
     public VisualTreeAsset tileAsset;
     private List<string> handList;
+    private int playerIndex = 1;
 
     private void OnEnable() 
     {
         TileCreator.CreatedTilesEvent += SetupClientHand;
-        PlayerHand.PlayerDroppedTile += OnTileDrop;
+        RoundLogic.DrawTile += DrawTile;
     }
     private void OnDisable() 
     { 
         TileCreator.CreatedTilesEvent -= SetupClientHand; 
-        PlayerHand.PlayerDroppedTile -= OnTileDrop;
+        RoundLogic.DrawTile -= DrawTile;
     }
 
 
     private PlayerHand clientHand;
-
-    private void OnTileDrop(int playerIndex, Tile tile)
-    {
-        clientHand.OnTileDrop(playerIndex, tile);
-        refreshHandList(); 
-    }
 
     private void SetupClientHand()
     {
@@ -48,16 +43,32 @@ public class MainClient : MonoBehaviour
         }
 
         clientHand.SetupPlayerHand(Tiles, 1);
+    }
 
-        for (int i = 0; i < UnityEngine.Random.Range(1, 5); i++)
+    private void DropTile()
+    {
+        List<Tile> tiles = new List<Tile>{};
+
+        foreach (List<Tile> tileList in clientHand.tiles.Values)
         {
-            int n = UnityEngine.Random.Range(1, 4);
-            String suit = (n == 1)? "Circle" : (n==2)? "Stick" : "Char";
-            List<Tile> tileList = clientHand.tiles[suit];
-
-            n = UnityEngine.Random.Range(0, tileList.Count - 1);
-            clientHand.DropTile(1, tileList[n]);
+            foreach (Tile tile in tileList)
+            {
+                if (tile.open) { continue; }
+                tiles.Add(tile);
+            }
         }
+        if (tiles.Count == 0) { return; }
+
+        int n = UnityEngine.Random.Range(0, tiles.Count - 1);
+        clientHand.DropTile(playerIndex, tiles[n]);
+    }
+
+    private void DrawTile(int playerIndex)
+    {
+        print(playerIndex);
+        if (playerIndex != this.playerIndex) { return; }
+        clientHand.DrawTilesFromWall(1);
+        DropTile();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

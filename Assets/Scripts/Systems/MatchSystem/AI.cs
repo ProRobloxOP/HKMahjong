@@ -8,8 +8,16 @@ using UnityEngine.SceneManagement;
 public class AI : MonoBehaviour
 {
 
-    private void OnEnable() => TileCreator.CreatedTilesEvent += SetupHand;
-    private void OnDisable() => TileCreator.CreatedTilesEvent -= SetupHand;
+    private void OnEnable()
+    {
+        TileCreator.CreatedTilesEvent += SetupHand;
+        RoundLogic.DrawTile += DrawTile;
+    } 
+    private void OnDisable()
+    {
+        TileCreator.CreatedTilesEvent -= SetupHand;
+        RoundLogic.DrawTile -= DrawTile;
+    } 
     private PlayerHand playerHand;
 
     [SerializeField] public int playerIndex;
@@ -29,17 +37,32 @@ public class AI : MonoBehaviour
         }
 
         playerHand.SetupPlayerHand(Tiles, playerIndex);
-
-        for (int i = 0; i < UnityEngine.Random.Range(1, 5); i++)
-        {
-            int n = UnityEngine.Random.Range(1, 3);
-            String suit = (n == 1)? "Circle" : (n==2)? "Stick" : "Char";
-            List<Tile> tileList = playerHand.tiles[suit];
-
-            n = UnityEngine.Random.Range(0, tileList.Count - 1);
-            playerHand.DropTile(playerIndex, tileList[n]);
-        }
     } 
+
+    private void DropTile()
+    {
+        List<Tile> tiles = new List<Tile>{};
+
+        foreach (List<Tile> tileList in playerHand.tiles.Values)
+        {
+            foreach (Tile tile in tileList)
+            {
+                if (tile.open) { continue; }
+                tiles.Add(tile);
+            }
+        }
+        if (tiles.Count == 0) { return; }
+
+        int n = UnityEngine.Random.Range(0, tiles.Count - 1);
+        playerHand.DropTile(playerIndex, tiles[n]);
+    }
+
+    private void DrawTile(int playerIndex)
+    {
+        if (playerIndex != this.playerIndex) { return; }
+        playerHand.DrawTilesFromWall(1);
+        DropTile();
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

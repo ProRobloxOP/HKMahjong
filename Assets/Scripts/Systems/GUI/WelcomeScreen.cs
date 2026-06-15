@@ -1,5 +1,6 @@
 
 
+using System;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,6 +8,8 @@ using UnityEngine.UIElements;
 
 public class WelcomeScreen : MonoBehaviour, IPointerClickHandler
 {
+
+      public static event Action StartRound;
       private GameObject buttonsObject;
       private GameObject handGUIObject;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -27,9 +30,12 @@ public class WelcomeScreen : MonoBehaviour, IPointerClickHandler
 
       public void OnPointerClick(PointerEventData eventData)
       {
+            print("Round Started!");
             gameObject.SetActive(false);
             buttonsObject.SetActive(true);
             handGUIObject.SetActive(true);
+
+            StartRound?.Invoke();
       }
 
 }
