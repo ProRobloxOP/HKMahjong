@@ -142,7 +142,7 @@ public class PlayerHand : ScriptableObject
         windTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
     }
 
-    private void DrawTilesFromWall(int iterations)
+    public void DrawTilesFromWall(int iterations)
     {
         for (int i = 0; i < iterations; i++)
         {
