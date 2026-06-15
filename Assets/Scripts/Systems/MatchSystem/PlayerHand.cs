@@ -155,10 +155,11 @@ public class PlayerHand : ScriptableObject
                 ["Season"] = DrawFlower
             };
             List<Tile> wall = TileCreator.wall;
-            Tile tile = wall[0];
+            Tile tile;
 
-            TileCreator.RemoveTile(Tiles, tile.id);
             if (wall.Count() == 0) { return; }
+            tile = wall[0];
+            TileCreator.RemoveTile(Tiles, tile.id);
             wall.RemoveAt(0);
 
             if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
@@ -187,12 +188,12 @@ public class PlayerHand : ScriptableObject
         VisualizeDrop(playerIndex, tile);
     }
 
-    public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex)
+    public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex, bool dealer)
     {
         this.playerIndex = playerIndex;
         this.Tiles = Tiles;
         //allConcealed = true;
-        DrawTilesFromWall(14);
+        DrawTilesFromWall((dealer)? 14 : 13);
 
         return tiles;
     }

@@ -36,7 +36,7 @@ public class AI : MonoBehaviour
             }
         }
 
-        playerHand.SetupPlayerHand(Tiles, playerIndex);
+        playerHand.SetupPlayerHand(Tiles, playerIndex, false);
     } 
 
     private void DropTile()

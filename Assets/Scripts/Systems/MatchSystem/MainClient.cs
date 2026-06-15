@@ -45,7 +45,7 @@ public class MainClient : MonoBehaviour
             }
         }
 
-        clientHand.SetupPlayerHand(Tiles, 1);
+        clientHand.SetupPlayerHand(Tiles, 1, true);
     }
 
     private void DropTile()
@@ -77,7 +77,7 @@ public class MainClient : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        clientHand = PlayerHand.CreateInstance<PlayerHand>();
     }
 
     // Update is called once per frame
@@ -85,4 +85,5 @@ public class MainClient : MonoBehaviour
     {
 
     }
+
 }
