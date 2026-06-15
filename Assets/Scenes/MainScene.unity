@@ -1525,6 +1525,7 @@ GameObject:
   - component: {fileID: 2133363761}
   - component: {fileID: 2133363760}
   - component: {fileID: 2133363764}
+  - component: {fileID: 2133363765}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -1637,8 +1638,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cb3730397d254c2694f55d5331a1e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileCreator
-  tileSettings: {fileID: 11400000, guid: f32e547ba89fc43eab48599afc94210d, type: 2}
-  blankTile: {fileID: 6021323522123798293, guid: 31f18643da5aa4082b7a890d4b1f08a0, type: 3}
+--- !u!114 &2133363765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2133363759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ad658b56739e0141aa82955718586d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoundLogic
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
