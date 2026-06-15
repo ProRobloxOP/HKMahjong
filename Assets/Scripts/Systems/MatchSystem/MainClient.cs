@@ -28,7 +28,6 @@ public class MainClient : MonoBehaviour
         RoundLogic.DrawTile -= DrawTile;
     }
 
-
     private PlayerHand clientHand;
 
     private void OnTileDrop(int playerIndex, Tile tile)
@@ -88,7 +87,6 @@ public class MainClient : MonoBehaviour
     private void refreshHandList()
     {
         rootElement = tileUI.rootVisualElement;
-        PrintHierarchy(rootElement);
 
         ScrollView handScroll = rootElement.Q<ScrollView>("Hand");
         handScroll.contentContainer.style.flexDirection = FlexDirection.Row;
@@ -136,14 +134,5 @@ public class MainClient : MonoBehaviour
     void Update()
     {
 
-    }
-
-    private void PrintHierarchy(VisualElement element, int depth = 0)
-    {
-        Debug.Log($"{new string('-', depth)}{element.GetType().Name} name='{element.name}' class='{string.Join(",", element.GetClasses())}'");
-        foreach (var child in element.Children())
-        {
-            PrintHierarchy(child, depth + 1);
-        }
     }
 }

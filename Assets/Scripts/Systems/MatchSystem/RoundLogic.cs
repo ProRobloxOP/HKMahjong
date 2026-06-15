@@ -2,8 +2,7 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "RoundLogic", menuName = "Scriptable Objects/RoundLogic")]
-public class RoundLogic : ScriptableObject
+public class RoundLogic : MonoBehaviour
 {
     public static event Action<int> DrawTile;
     int currPlayer = 0;
@@ -30,4 +29,16 @@ public class RoundLogic : ScriptableObject
      {
           SwitchPlayerTurn(0, null);
      }
+
+     
+    void Start()
+     {
+          
+     }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
 }
