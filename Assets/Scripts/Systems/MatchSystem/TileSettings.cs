@@ -52,7 +52,7 @@ public class TileSettings : ScriptableObject
         new DropRow
         {
             pos = new Vector3(-183, 40, 300),
-            rot = Quaternion.Euler(new Vector3(180, 0, 90)),
+            rot = Quaternion.Euler(new Vector3(180, 180, 90)),
             axis = "x",
             direction = 1,
             maxColumn = 8
