@@ -10,8 +10,6 @@ using System.Linq;
 public class MainClient : MonoBehaviour
 {
 
-    public UIDocument tileUI;
-    public VisualTreeAsset tileAsset;
     private List<string> handList;
     private int playerIndex = 1;
     private VisualElement rootElement;
