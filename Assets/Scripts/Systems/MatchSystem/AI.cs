@@ -7,6 +7,9 @@ using UnityEngine.SceneManagement;
 
 public class AI : MonoBehaviour
 {
+    [SerializeField] private int playerIndex;
+
+    private PlayerHand playerHand;
 
     private void OnEnable()
     {
@@ -18,9 +21,6 @@ public class AI : MonoBehaviour
         TileCreator.CreatedTilesEvent -= SetupHand;
         RoundLogic.DrawTile -= DrawTile;
     } 
-    private PlayerHand playerHand;
-
-    [SerializeField] public int playerIndex;
 
     private void SetupHand()
     {

@@ -13,13 +13,14 @@ using UnityEngine.SceneManagement;
 
 public class HandGUI : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public PlayerHand playerHand;
+    private PlayerHand clientHand;
     public Dictionary<string, List<Tile>> tiles;
     private List<string> handList;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        tiles = playerHand.tiles;
+        //clientHand = MainClient.GetMainClientHand?.Invoke();
+        tiles = clientHand.tiles;
         handList = new List<string>();
         foreach (List<Tile> tileList in tiles.Values)
         {
