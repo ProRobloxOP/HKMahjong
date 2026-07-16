@@ -10,24 +10,21 @@ using System.Linq;
 public class MainClient : MonoBehaviour
 {
 
-    public static event Func<PlayerHand> GetMainClientHand;
     private int playerIndex = 1;
+    private bool createdHand = false;
 
     private void OnEnable()
     {
-        GetMainClientHand += GetClientHand;
         TileCreator.CreatedTilesEvent += SetupClientHand;
         RoundLogic.DrawTile += DrawTile;
     }
     private void OnDisable() 
     { 
-        GetMainClientHand -= GetClientHand;
         TileCreator.CreatedTilesEvent -= SetupClientHand; 
         RoundLogic.DrawTile -= DrawTile;
     }
 
-
-    private PlayerHand clientHand;
+    private static PlayerHand clientHand;
 
     private void SetupClientHand()
     {
@@ -46,8 +43,14 @@ public class MainClient : MonoBehaviour
         clientHand.SetupPlayerHand(Tiles, 1, true);
     }
 
-    private PlayerHand GetClientHand()
+    private IEnumerator WaitForHandCreation()
     {
+        yield return new WaitUntil(() => createdHand);
+    }
+
+    public static PlayerHand GetClientHand()
+    {
+        
         return clientHand;
     }
 

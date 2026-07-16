@@ -1,11 +1,11 @@
 using System;
-using System.Threading.Tasks;
+using System.Collections;
 using UnityEngine;
 
 public class RoundLogic : MonoBehaviour
 {
     public static event Action<int> DrawTile;
-    int currPlayer = 0;
+    private WaitForSeconds turnDelay;
 
     private void OnEnable()
      {
@@ -18,11 +18,16 @@ public class RoundLogic : MonoBehaviour
           WelcomeScreen.StartRound -= StartRound;
      } 
 
-    private async void SwitchPlayerTurn(int lastPlayer, Tile droppedTile)
+     private void SwitchPlayerTurn(int lastPlayer, Tile droppedTile)
      {
-          currPlayer = (currPlayer == 4)? 1 : currPlayer + 1;
-          await Task.Delay(300);
-          DrawTile?.Invoke(currPlayer);
+          StartCoroutine(SwitchPlayerCorountine(lastPlayer, droppedTile));
+     }
+
+     private IEnumerator SwitchPlayerCorountine(int lastPlayer, Tile droppedTile)
+     {
+         int currPlayer = (lastPlayer == 4)? 1 : lastPlayer + 1;
+         yield return turnDelay;
+         DrawTile?.Invoke(currPlayer);
      }
 
      private void StartRound()
@@ -33,7 +38,7 @@ public class RoundLogic : MonoBehaviour
      // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
      {
-          
+          turnDelay = new WaitForSeconds(0.3f);
      }
 
     // Update is called once per frame

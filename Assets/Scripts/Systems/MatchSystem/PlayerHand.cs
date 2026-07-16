@@ -1,17 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using Mono.Cecil;
-using Unity.Burst;
-using Unity.VisualScripting;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.InputSystem.Controls;
-using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 
 [Serializable]
 public struct HandRank
@@ -171,7 +162,7 @@ public class PlayerHand : ScriptableObject
     {
         DropRow dropRow = TileSettings.dropSetting[playerIndex - 1];
         List<Tile> playerDropped = droppedTiles[playerIndex - 1];
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/" + tile.ToString() + ".prefab");
+        GameObject prefab = Resources.Load<GameObject>("Prefabs/Tiles/" + tile.ToString());
 
         GameObject tileObj = TileCreator.CreateTile(prefab, dropRow.pos, dropRow.rot, tile.id);
         tileObj.transform.position = TileCreator.SetTilePos(tileObj, playerDropped.Count + 1, 1, dropRow.axis, dropRow.direction);

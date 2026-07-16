@@ -157,14 +157,14 @@ public class TileCreator : MonoBehaviour
 
         for (int i = 1; i <= 9; i++)
         {
-            int leftover = 4 - ((usedTiles.ContainsKey(i))? usedTiles[i] : 0);
+            int leftover = 4 - (usedTiles.ContainsKey(i)? usedTiles[i] : 0);
             n -= leftover;
             num = i;
 
             if (n <= 0) { break; }
         }
 
-        usedTiles[num] = (usedTiles.ContainsKey(num))? usedTiles[num] + 1 : 1;
+        usedTiles[num] = usedTiles.ContainsKey(num)? usedTiles[num] + 1 : 1;
         TileTracker.total++;
 
         return new Tile
@@ -273,7 +273,7 @@ public class TileCreator : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        blankTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/Blank.prefab");
+        blankTile = Resources.Load<GameObject>("Prefabs/Tiles/Blank");
         CreateTiles();
         CreatedTilesEvent?.Invoke();
     }
