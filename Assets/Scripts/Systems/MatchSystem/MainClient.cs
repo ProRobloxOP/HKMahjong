@@ -10,8 +10,8 @@ using System.Linq;
 public class MainClient : MonoBehaviour
 {
 
+    public static event Action<PlayerHand> getClientHand;
     private int playerIndex = 1;
-    private bool createdHand = false;
 
     private void OnEnable()
     {
@@ -41,17 +41,7 @@ public class MainClient : MonoBehaviour
         }
 
         clientHand.SetupPlayerHand(Tiles, 1, true);
-    }
-
-    private IEnumerator WaitForHandCreation()
-    {
-        yield return new WaitUntil(() => createdHand);
-    }
-
-    public static PlayerHand GetClientHand()
-    {
-        
-        return clientHand;
+        getClientHand?.Invoke(clientHand);
     }
 
     private void DropTile()
@@ -74,7 +64,6 @@ public class MainClient : MonoBehaviour
 
     private void DrawTile(int playerIndex)
     {
-        print(playerIndex);
         if (playerIndex != this.playerIndex) { return; }
         clientHand.DrawTilesFromWall(1);
         DropTile();

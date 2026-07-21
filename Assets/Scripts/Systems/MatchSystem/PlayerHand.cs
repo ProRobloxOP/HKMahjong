@@ -165,7 +165,7 @@ public class PlayerHand : ScriptableObject
         GameObject prefab = Resources.Load<GameObject>("Prefabs/Tiles/" + tile.ToString());
 
         GameObject tileObj = TileCreator.CreateTile(prefab, dropRow.pos, dropRow.rot, tile.id);
-        tileObj.transform.position = TileCreator.SetTilePos(tileObj, playerDropped.Count + 1, 1, dropRow.axis, dropRow.direction);
+        tileObj.transform.position = TileCreator.SetTilePos(tileObj, playerDropped.Count % 6, playerDropped.Count / 6, dropRow.axis, dropRow.direction, true);
         playerDropped.Add(tile);
     }
 

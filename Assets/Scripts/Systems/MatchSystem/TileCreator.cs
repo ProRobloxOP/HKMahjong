@@ -97,23 +97,36 @@ public class TileCreator : MonoBehaviour
     public static List<Tile> wall = new List<Tile>{};
     private GameObject blankTile;
 
-    private static Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
+    private static Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction, bool switchRowProp)
     {
-        return new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z);
+        return (switchRowProp != true)?
+         new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z) : 
+         new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y, tileTransform.position.z - (row-1)*tileBounds.z*TileSettings.general["AxisSpacing"]*direction);
     }
 
-    private static Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction)
+    private static Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction, bool switchRowProp)
     {
-        return new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]);
+        return (switchRowProp != true)?
+         new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]) : 
+         new Vector3(tileTransform.position.x + (row-1)*tileBounds.x*TileSettings.general["AxisSpacing"]*direction, tileTransform.position.y, tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]);
     }
 
     public static Vector3 SetTilePos(GameObject tile, int column, int row, String axis, int direction)
     {
         if (axis == "x")
         {
-            return SetTilePosX(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction);
+            return SetTilePosX(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction, false);
         }
-        return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction);
+        return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction, false);
+    }
+
+    public static Vector3 SetTilePos(GameObject tile, int column, int row, String axis, int direction, bool switchRowProp)
+    {
+        if (axis == "x")
+        {
+            return SetTilePosX(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction, switchRowProp);
+        }
+        return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction, switchRowProp);
     }
 
     private String AssignRandomSuit()
