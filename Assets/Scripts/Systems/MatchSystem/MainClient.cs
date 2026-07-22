@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
-using UnityEditor;
-using System.Linq;
 
 public class MainClient : MonoBehaviour
 {
