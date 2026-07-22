@@ -10,7 +10,7 @@ public class HandActions : ScriptableObject
 {
      public static bool CanWin(Dictionary<string, List<Tile>> hand)
      {
-          int totalMelds = ContainsCheung(hand).Count + ContainsCheung(hand).Count;
+          int totalMelds = ContainsPong(hand).Count + ContainsCheung(hand).Count;
           string[] noCheck = new string[] {"Flower"};
           List<Tile> pair = new List<Tile>{};
           if (totalMelds < 4) { return false; }

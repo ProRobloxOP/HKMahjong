@@ -1,42 +1,54 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class HandGUI : MonoBehaviour
 {
-    private Dictionary<string, List<Tile>> tiles;
-    private List<Tile> handList;
+    private bool canTileDrop = false;
     private PlayerHand clientHand;
 
     void OnEnable()
     {
-        MainClient.getClientHand += GetClientHand;
-        WelcomeScreen.StartRound += SetupHandUI;
+        MainClient.getClientHand += SetClientHand;
+        WelcomeScreen.StartRound += UpdateHandUI;
+        RoundLogic.DrawTile += EnableTileDrop;
     }
 
     void OnDisable()
     {
-        MainClient.getClientHand -= GetClientHand;
-        WelcomeScreen.StartRound -= SetupHandUI;
+        MainClient.getClientHand -= SetClientHand;
+        WelcomeScreen.StartRound -= UpdateHandUI;
+        RoundLogic.DrawTile -= EnableTileDrop;
     }
 
-    private void FillHandList()
+    private void EnableTileDrop(int playerIndex)
     {
-        handList = new List<Tile>();
+        if (playerIndex != clientHand.GetPlayerIndex()) { return; }
+        canTileDrop = true;
+    }
 
-        foreach (List<Tile> tileList in tiles.Values)
+    private void ClearContentUI()
+    {
+        Transform contentTransform = transform.Find("Viewport").Find("Content");
+
+        for (int i = 0; i < contentTransform.childCount; i++)
         {
-            foreach (Tile tile in tileList)
-            {
-                handList.Add(tile);
-            }
+            Transform tileTransform = contentTransform.GetChild(i);
+            if (tileTransform.name == "Template") { continue; }
+            Destroy(tileTransform.gameObject);
         }
+    }
+
+    private void OnTileClick(Tile tile)
+    {
+        if (!canTileDrop) { return; }
+        clientHand.DropTile(clientHand.GetPlayerIndex(), tile);
+        canTileDrop = false;
     }
 
     private UnityEngine.UI.Button CreateTileUI(Tile tile)
     {
-        if (tile.suit == "Flower" || tile.suit == "Season") { return null; }
         Transform contentTransform = transform.Find("Viewport").Find("Content");
         GameObject tileUITemplate = contentTransform.Find("Template").gameObject;
         GameObject tileUI = Instantiate(tileUITemplate, contentTransform);
@@ -56,30 +68,33 @@ public class HandGUI : MonoBehaviour
             new Rect(0, 0, tileTexture.width, tileTexture.height),
             new Vector2(0.5f, 0.5f)
         );
+        tileButton.onClick.AddListener(() => OnTileClick(tile));
         tileUI.SetActive(true);
 
         return tileButton;
     }
 
-    private IEnumerator Setup()
+    private IEnumerator UpdateHand()
     {
         yield return new WaitUntil(() => clientHand != null);
-        tiles = clientHand.tiles;
-        FillHandList();
 
-        foreach (Tile tile in handList)
+        Dictionary<string, List<Tile>> tiles = clientHand.GetCurrentTiles();
+        ClearContentUI();
+
+        foreach (Tile tile in clientHand.GetHandList(true))
         {
             CreateTileUI(tile);
         }
     }
 
-    private void GetClientHand(PlayerHand clientHand)
+    private void SetClientHand(PlayerHand clientHand)
     {
         this.clientHand = clientHand;
+        clientHand.OnUpdate(() => StartCoroutine(UpdateHand()));
     }
 
-    private void SetupHandUI()
+    public void UpdateHandUI()
     {
-        StartCoroutine(Setup());
+        StartCoroutine(UpdateHand());
     }
 }

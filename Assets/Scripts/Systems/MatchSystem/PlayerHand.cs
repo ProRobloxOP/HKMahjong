@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.SocialPlatforms;
 
 [Serializable]
 public struct HandRank
@@ -63,7 +67,7 @@ public class PlayerHand : ScriptableObject
         ["Thirteen Orphans"] = () => {},
         ["Seven Pairs"] = () => {}
     };*/
-    public Dictionary<string, List<Tile>> tiles = new Dictionary<string, List<Tile>>
+    private Dictionary<string, List<Tile>> tiles = new Dictionary<string, List<Tile>>
     {
         ["Char"] = new List<Tile>{},
         ["Circle"] = new List<Tile>{},
@@ -73,17 +77,65 @@ public class PlayerHand : ScriptableObject
         ["Wind"] = new List<Tile>{},
         ["Flower"] = new List<Tile>{}
     }; // suit -> Tile
-    public List<Tile>[] droppedTiles = new List<Tile>[]
+    private List<Tile>[] droppedTiles = new List<Tile>[]
     {
         new List<Tile>{},
         new List<Tile>{},
         new List<Tile>{},
         new List<Tile>{}
     };
+
+    private List<UnityAction> onUpdateListeners = new List<UnityAction>{};
     public static event Action<int, Tile> PlayerDroppedTile;
     private GameObject Tiles;
     //private bool allConcealed;
-    public int playerIndex;
+    private int playerIndex;
+
+    public int GetPlayerIndex()
+    {
+        return playerIndex;
+    }
+
+    public Dictionary<string, List<Tile>> GetCurrentTiles()
+    {
+        return tiles;
+    }
+
+    public List<Tile>[] GetDroppedTiles()
+    {
+        return droppedTiles;
+    }
+
+    public List<Tile> GetHandList()
+    {
+        List<Tile> handList = new List<Tile>();
+
+        foreach (List<Tile> tileList in tiles.Values)
+        {
+            foreach (Tile tile in tileList)
+            {
+                handList.Add(tile);
+            }
+        }
+
+        return handList;
+    }
+
+    public List<Tile> GetHandList(bool excludeOpen)
+    {
+        List<Tile> handList = new List<Tile>();
+
+        foreach (List<Tile> tileList in tiles.Values)
+        {
+            foreach (Tile tile in tileList)
+            {
+                if (excludeOpen && tile.open) { continue; }
+                handList.Add(tile);
+            }
+        }
+
+        return handList;
+    }
 
     private int CompareOrder(String[] order, Tile tile1, Tile tile2)
     {
@@ -138,7 +190,8 @@ public class PlayerHand : ScriptableObject
     {
         for (int i = 0; i < iterations; i++)
         {
-            Dictionary<String, Action<Tile>> addMethods = new Dictionary<String, Action<Tile>>
+            if (GetHandList(true).Count == 14) { break; }
+            Dictionary<string, UnityAction<Tile>> drawMethods = new Dictionary<string, UnityAction<Tile>>
             {
                 ["Dragon"] = DrawDragonTile,
                 ["Wind"] = DrawWindTile,
@@ -148,14 +201,17 @@ public class PlayerHand : ScriptableObject
             List<Tile> wall = TileCreator.wall;
             Tile tile;
 
-            if (wall.Count() == 0) { return; }
+            if (wall.Count == 0) { return; }
             tile = wall[0];
             TileCreator.RemoveTile(Tiles, tile.id);
             wall.RemoveAt(0);
 
-            if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
+            if (drawMethods.ContainsKey(tile.suit)) { drawMethods[tile.suit](tile); continue; }
             DrawNormalTile(tile);
+            Debug.Log(tile.ToString());
         }
+
+        CallUpdateActions();
     }
 
     private void VisualizeDrop(int playerIndex, Tile tile)
@@ -177,6 +233,7 @@ public class PlayerHand : ScriptableObject
 
         PlayerDroppedTile?.Invoke(playerIndex, tile);
         VisualizeDrop(playerIndex, tile);
+        CallUpdateActions();
     }
 
     public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex, bool dealer)
@@ -187,5 +244,18 @@ public class PlayerHand : ScriptableObject
         DrawTilesFromWall((dealer)? 14 : 13);
 
         return tiles;
+    }
+
+    private void CallUpdateActions()
+    {
+        foreach (UnityAction call in onUpdateListeners)
+        {
+            call();
+        }
+    }
+
+    public void OnUpdate(UnityAction call)
+    {
+        onUpdateListeners.Add(call);
     }
 }

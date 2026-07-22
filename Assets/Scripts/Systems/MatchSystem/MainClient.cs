@@ -48,7 +48,7 @@ public class MainClient : MonoBehaviour
     {
         List<Tile> tiles = new List<Tile>{};
 
-        foreach (List<Tile> tileList in clientHand.tiles.Values)
+        foreach (List<Tile> tileList in clientHand.GetCurrentTiles().Values)
         {
             foreach (Tile tile in tileList)
             {
@@ -66,7 +66,6 @@ public class MainClient : MonoBehaviour
     {
         if (playerIndex != this.playerIndex) { return; }
         clientHand.DrawTilesFromWall(1);
-        DropTile();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

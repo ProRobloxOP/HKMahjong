@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "HandCombos", menuName = "Scriptable Objects/HandCombos")]
@@ -5,7 +6,8 @@ public class HandCombos : ScriptableObject
 {
      public static HandRank EightFlowers(PlayerHand playerHand)
      {
-          int total = playerHand.tiles["Flower"].Count + playerHand.tiles["Season"].Count;
+          Dictionary<string, List<Tile>> tiles = playerHand.GetCurrentTiles();
+          int total = tiles["Flower"].Count + tiles["Season"].Count;
           return new HandRank
           {
                points = (total == 8)? 8 : 0
@@ -14,9 +16,10 @@ public class HandCombos : ScriptableObject
      
      public static HandRank AllFlowers(PlayerHand playerHand)
      {
+          Dictionary<string, List<Tile>> tiles = playerHand.GetCurrentTiles();
           int flowers = 0, seasons = 0;
 
-          foreach (Tile tile in playerHand.tiles["Flower"])
+          foreach (Tile tile in tiles["Flower"])
           {
                flowers += (tile.suit.Equals("Flower"))? 1 : 0;
                seasons += (tile.suit.Equals("Season"))? 1 : 0;

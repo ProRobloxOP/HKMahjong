@@ -41,20 +41,21 @@ public class AI : MonoBehaviour
 
     private void DropTile()
     {
-        List<Tile> tiles = new List<Tile>{};
+        Dictionary<string, List<Tile>> tiles = playerHand.GetCurrentTiles();
+        List<Tile> toDrop = new List<Tile>{};
 
-        foreach (List<Tile> tileList in playerHand.tiles.Values)
+        foreach (List<Tile> tileList in tiles.Values)
         {
             foreach (Tile tile in tileList)
             {
                 if (tile.open) { continue; }
-                tiles.Add(tile);
+                toDrop.Add(tile);
             }
         }
-        if (tiles.Count == 0) { return; }
+        if (toDrop.Count == 0) { return; }
 
-        int n = UnityEngine.Random.Range(0, tiles.Count - 1);
-        playerHand.DropTile(playerIndex, tiles[n]);
+        int n = UnityEngine.Random.Range(0, toDrop.Count - 1);
+        playerHand.DropTile(playerIndex, toDrop[n]);
     }
 
     private void DrawTile(int playerIndex)
