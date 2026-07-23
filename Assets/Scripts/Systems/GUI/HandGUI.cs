@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,7 @@ public class HandGUI : MonoBehaviour
 
     void OnEnable()
     {
+        PlayerHand.PlayerDroppedTile += CheckHandActions;
         MainClient.getClientHand += SetClientHand;
         WelcomeScreen.StartRound += UpdateHandUI;
         RoundLogic.DrawTile += EnableTileDrop;
@@ -16,6 +18,7 @@ public class HandGUI : MonoBehaviour
 
     void OnDisable()
     {
+         PlayerHand.PlayerDroppedTile -= CheckHandActions;
         MainClient.getClientHand -= SetClientHand;
         WelcomeScreen.StartRound -= UpdateHandUI;
         RoundLogic.DrawTile -= EnableTileDrop;
@@ -37,6 +40,14 @@ public class HandGUI : MonoBehaviour
             if (tileTransform.name == "Template") { continue; }
             Destroy(tileTransform.gameObject);
         }
+    }
+
+    private void CheckHandActions(int playerIndex, Tile droppedTile)
+    {
+        print("Can Pong: " + HandActions.CanPong(clientHand.GetCurrentTiles(), droppedTile).Count);
+        print("Can Kong: " + HandActions.CanKong(clientHand.GetCurrentTiles(), droppedTile).Count);
+        if (((playerIndex + 1 > 4)? 1 : playerIndex + 1 )!= clientHand.GetPlayerIndex()) { return; }
+        print("Can Cheung: " + HandActions.CanCheung(clientHand.GetCurrentTiles(), droppedTile).Count);
     }
 
     private void OnTileClick(Tile tile)

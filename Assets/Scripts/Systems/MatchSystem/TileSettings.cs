@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public struct TileStack
 {
     public Vector3 pos;
@@ -11,7 +11,7 @@ public struct TileStack
     public int direction;
 }
 
-[System.Serializable]
+[Serializable]
 public struct DropRow
 {
     public Vector3 pos;

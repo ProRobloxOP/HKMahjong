@@ -54,6 +54,7 @@ public class HandActions : ScriptableObject
 
                foreach (Tile tile in suitTiles)
                {
+                    if (tile.open) { continue; }
                     tile.inPong = false;
                }
 
@@ -100,6 +101,7 @@ public class HandActions : ScriptableObject
 
                foreach (Tile tile in suitTiles)
                {
+                    if (tile.open) { continue; }
                     tile.inCheung = false;
                }
 
@@ -135,6 +137,7 @@ public class HandActions : ScriptableObject
      public static List<Tile> CanKong(Dictionary<string, List<Tile>> hand, Tile tile)
     {
         List<Tile> pongList = CanPong(hand, tile);
+        if (pongList.Contains(tile)){ pongList.Remove(tile); }
         if (pongList.Count < 3) { pongList.Clear(); }
         return pongList;
     }
@@ -149,6 +152,7 @@ public class HandActions : ScriptableObject
         foreach (Tile ownedTile in hand[tile.suit])
         {
             int numDiff = (int)(tile.number - ownedTile.number);
+            if (ownedTile.open) { continue; }
             if (numDiff > 0 && numDiff <= 2)
             {
                 backCheung.Add(ownedTile);
@@ -171,7 +175,7 @@ public class HandActions : ScriptableObject
 
         foreach (Tile ownedTile in hand[tile.suit])
         {
-            if (!ownedTile.suit.Equals(tile.suit)) { continue; }
+            if (!ownedTile.suit.Equals(tile.suit) || ownedTile.open) { continue; }
             if (!tile.number.IsUnityNull() && ownedTile.number == tile.number)
             {
                 pongTiles.Add(ownedTile);
@@ -182,7 +186,7 @@ public class HandActions : ScriptableObject
                 pongTiles.Add(ownedTile);
             }
         }
-        if (pongTiles.Count() < 1) { pongTiles.Clear(); }
+        if (pongTiles.Count() < 2) { pongTiles.Clear(); }
 
         return pongTiles;
     }

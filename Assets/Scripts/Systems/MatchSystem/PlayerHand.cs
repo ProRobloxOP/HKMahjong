@@ -72,6 +72,7 @@ public class PlayerHand : ScriptableObject
         ["Wind"] = new List<Tile>{},
         ["Flower"] = new List<Tile>{}
     }; // suit -> Tile
+    private List<List<Tile>> openMelds = new List<List<Tile>>{};
     private List<Tile>[] droppedTiles = new List<Tile>[]
     {
         new List<Tile>{},
@@ -86,6 +87,16 @@ public class PlayerHand : ScriptableObject
     //private bool allConcealed;
     private int playerIndex;
 
+    void OnEnable()
+    {
+        PlayerDroppedTile += OnTileDrop;
+    }
+
+    void OnDisable()
+    {
+        PlayerDroppedTile -= OnTileDrop;
+    }
+
     public int GetPlayerIndex()
     {
         return playerIndex;
@@ -94,6 +105,11 @@ public class PlayerHand : ScriptableObject
     public Dictionary<string, List<Tile>> GetCurrentTiles()
     {
         return tiles;
+    }
+
+    public List<List<Tile>> GetOpenMelds()
+    {
+        return openMelds;
     }
 
     public List<Tile>[] GetDroppedTiles()
@@ -203,15 +219,20 @@ public class PlayerHand : ScriptableObject
 
             if (drawMethods.ContainsKey(tile.suit)) { drawMethods[tile.suit](tile); continue; }
             DrawNormalTile(tile);
-            Debug.Log(tile.ToString());
         }
 
         CallUpdateActions();
     }
 
+    private void OnTileDrop(int playerIndex, Tile droppedTile)
+    {
+        if (playerIndex == this.playerIndex) { return; }
+        droppedTiles[playerIndex - 1].Add(droppedTile);
+    }
+
     private void VisualizeDrop(int playerIndex, Tile tile)
     {
-        DropRow dropRow = TileSettings.dropSetting[playerIndex - 1];
+        DropRow dropRow = TileSettings.dropSetting[playerIndex - 1]; // eg. Player 1 -> Index 0 (First Index)
         List<Tile> playerDropped = droppedTiles[playerIndex - 1];
         GameObject prefab = Resources.Load<GameObject>("Prefabs/Tiles/" + tile.ToString());
 
