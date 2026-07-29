@@ -21,8 +21,8 @@ public class HandCombos : ScriptableObject
 
           foreach (Tile tile in tiles["Flower"])
           {
-               flowers += (tile.suit.Equals("Flower"))? 1 : 0;
-               seasons += (tile.suit.Equals("Season"))? 1 : 0;
+               flowers += tile.suit.Equals("Flower")? 1 : 0;
+               seasons += tile.suit.Equals("Season")? 1 : 0;
 
                if (flowers == TileSettings.general["Flower"] || seasons == TileSettings.general["Season"])
                {

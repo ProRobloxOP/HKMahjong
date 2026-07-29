@@ -81,7 +81,10 @@ public class PlayerHand : ScriptableObject
         new List<Tile>{}
     };
 
-    private List<UnityAction> onUpdateListeners = new List<UnityAction>{};
+    private Dictionary<string, List<UnityAction<object>>> hookListeners = new Dictionary<string, List<UnityAction<object>>>
+    {
+        ["OnDraw"] = new List<UnityAction<object>>()
+    };
     public static event Action<int, Tile> PlayerDroppedTile;
     private GameObject Tiles;
     //private bool allConcealed;
@@ -148,13 +151,13 @@ public class PlayerHand : ScriptableObject
         return handList;
     }
 
-    private int CompareOrder(String[] order, Tile tile1, Tile tile2)
+    private int CompareOrder(string[] order, Tile tile1, Tile tile2)
     {
-        String name1 = tile1.name;
-        String name2 = tile2.name;
+        string name1 = tile1.name;
+        string name2 = tile2.name;
         if (name1.Equals(name2)) { return 0; }
 
-        foreach (String rank in order)
+        foreach (string rank in order)
         {
             if (name1.Equals(rank)){ return 1; }
             if (name2.Equals(rank)) { return -1; }
@@ -166,9 +169,9 @@ public class PlayerHand : ScriptableObject
     private void DrawFlower(Tile tile)
     {
         List<Tile> flowerTiles = tiles["Flower"];
+        tile.open = true;
         flowerTiles.Add(tile);
         DrawTilesFromWall(1);
-        tile.open = true;
     }
 
     private void DrawNormalTile(Tile tile)
@@ -182,7 +185,7 @@ public class PlayerHand : ScriptableObject
     private void DrawDragonTile(Tile tile)
     {
         List<Tile> dragonTiles = tiles["Dragon"];
-        String[] order = {"White", "Green", "Red"};
+        string[] order = {"White", "Green", "Red"};
         dragonTiles.Add(tile);
 
         dragonTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
@@ -191,7 +194,7 @@ public class PlayerHand : ScriptableObject
     private void DrawWindTile(Tile tile)
     {
         List<Tile> windTiles = tiles["Wind"];
-        String[] order = {"East", "South", "West", "North"};
+        string[] order = {"East", "South", "West", "North"};
         windTiles.Add(tile);
 
         windTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
@@ -199,9 +202,12 @@ public class PlayerHand : ScriptableObject
 
     public void DrawTilesFromWall(int iterations)
     {
+        List<Tile> wall = TileCreator.wall;
+
         for (int i = 0; i < iterations; i++)
         {
             if (GetHandList(true).Count == 14) { break; }
+            if (wall.Count == 0) { break; }
             Dictionary<string, UnityAction<Tile>> drawMethods = new Dictionary<string, UnityAction<Tile>>
             {
                 ["Dragon"] = DrawDragonTile,
@@ -209,19 +215,18 @@ public class PlayerHand : ScriptableObject
                 ["Flower"] = DrawFlower,
                 ["Season"] = DrawFlower
             };
-            List<Tile> wall = TileCreator.wall;
-            Tile tile;
 
-            if (wall.Count == 0) { return; }
-            tile = wall[0];
+            Tile tile = wall[0];
             TileCreator.RemoveTile(Tiles, tile.id);
+            CallOnDrawListeners(tile);
             wall.RemoveAt(0);
 
-            if (drawMethods.ContainsKey(tile.suit)) { drawMethods[tile.suit](tile); continue; }
+            if (drawMethods.ContainsKey(tile.suit)) { 
+                drawMethods[tile.suit](tile);
+                continue;
+            }
             DrawNormalTile(tile);
         }
-
-        CallUpdateActions();
     }
 
     private void OnTileDrop(int playerIndex, Tile droppedTile)
@@ -238,6 +243,7 @@ public class PlayerHand : ScriptableObject
 
         GameObject tileObj = TileCreator.CreateTile(prefab, dropRow.pos, dropRow.rot, tile.id);
         tileObj.transform.position = TileCreator.SetTilePos(tileObj, playerDropped.Count % 6, playerDropped.Count / 6, dropRow.axis, dropRow.direction, true);
+        tileObj.transform.SetParent(GameObject.Find("DroppedTiles").transform);
         playerDropped.Add(tile);
     }
 
@@ -249,10 +255,9 @@ public class PlayerHand : ScriptableObject
 
         PlayerDroppedTile?.Invoke(playerIndex, tile);
         VisualizeDrop(playerIndex, tile);
-        CallUpdateActions();
     }
 
-    public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex, bool dealer)
+    public Dictionary<string, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex, bool dealer)
     {
         this.playerIndex = playerIndex;
         this.Tiles = Tiles;
@@ -262,16 +267,19 @@ public class PlayerHand : ScriptableObject
         return tiles;
     }
 
-    private void CallUpdateActions()
+    private void CallOnDrawListeners(Tile tile)
     {
-        foreach (UnityAction call in onUpdateListeners)
+        List<UnityAction<object>> listeners = hookListeners["OnDraw"];
+        if (tile.open) { return; }
+        
+        foreach (UnityAction<object> listener in listeners)
         {
-            call();
+            listener(tile);
         }
     }
 
-    public void OnUpdate(UnityAction call)
+    public void OnDraw(UnityAction<object> call)
     {
-        onUpdateListeners.Add(call);
+        hookListeners["OnDraw"].Add(call);
     }
 }

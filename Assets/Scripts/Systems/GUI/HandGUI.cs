@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class HandGUI : MonoBehaviour
@@ -18,7 +19,7 @@ public class HandGUI : MonoBehaviour
 
     void OnDisable()
     {
-         PlayerHand.PlayerDroppedTile -= CheckHandActions;
+        PlayerHand.PlayerDroppedTile -= CheckHandActions;
         MainClient.getClientHand -= SetClientHand;
         WelcomeScreen.StartRound -= UpdateHandUI;
         RoundLogic.DrawTile -= EnableTileDrop;
@@ -44,6 +45,7 @@ public class HandGUI : MonoBehaviour
 
     private void CheckHandActions(int playerIndex, Tile droppedTile)
     {
+        if (playerIndex == clientHand.GetPlayerIndex()) { UpdateHandUI(); }
         print("Can Pong: " + HandActions.CanPong(clientHand.GetCurrentTiles(), droppedTile).Count);
         print("Can Kong: " + HandActions.CanKong(clientHand.GetCurrentTiles(), droppedTile).Count);
         if (((playerIndex + 1 > 4)? 1 : playerIndex + 1 )!= clientHand.GetPlayerIndex()) { return; }
@@ -84,7 +86,7 @@ public class HandGUI : MonoBehaviour
         return tileButton;
     }
 
-    private IEnumerator UpdateHand()
+    private IEnumerator UpdateHand(Tile drawnTile)
     {
         yield return new WaitUntil(() => clientHand != null);
 
@@ -93,18 +95,20 @@ public class HandGUI : MonoBehaviour
 
         foreach (Tile tile in clientHand.GetHandList(true))
         {
+            if (!drawnTile.IsUnityNull() && drawnTile.id == tile.id) { continue; }
             CreateTileUI(tile);
         }
+        if (!drawnTile.IsUnityNull()) { CreateTileUI(drawnTile); }
     }
 
     private void SetClientHand(PlayerHand clientHand)
     {
         this.clientHand = clientHand;
-        clientHand.OnUpdate(() => StartCoroutine(UpdateHand()));
+        clientHand.OnDraw((object tile) => StartCoroutine(UpdateHand((Tile) tile)));
     }
 
     public void UpdateHandUI()
     {
-        StartCoroutine(UpdateHand());
+        StartCoroutine(UpdateHand(null));
     }
 }
