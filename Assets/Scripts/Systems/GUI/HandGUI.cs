@@ -45,11 +45,8 @@ public class HandGUI : MonoBehaviour
 
     private void CheckHandActions(int playerIndex, Tile droppedTile)
     {
-        if (playerIndex == clientHand.GetPlayerIndex()) { UpdateHandUI(); }
-        print("Can Pong: " + HandActions.CanPong(clientHand.GetCurrentTiles(), droppedTile).Count);
-        print("Can Kong: " + HandActions.CanKong(clientHand.GetCurrentTiles(), droppedTile).Count);
-        if (((playerIndex + 1 > 4)? 1 : playerIndex + 1 )!= clientHand.GetPlayerIndex()) { return; }
-        print("Can Cheung: " + HandActions.CanCheung(clientHand.GetCurrentTiles(), droppedTile).Count);
+        if (playerIndex != clientHand.GetPlayerIndex()) { return; }
+        UpdateHandUI();
     }
 
     private void OnTileClick(Tile tile)
@@ -59,7 +56,7 @@ public class HandGUI : MonoBehaviour
         canTileDrop = false;
     }
 
-    private UnityEngine.UI.Button CreateTileUI(Tile tile)
+    private GameObject CreateTileUI(Tile tile)
     {
         Transform contentTransform = transform.Find("Viewport").Find("Content");
         GameObject tileUITemplate = contentTransform.Find("Template").gameObject;
@@ -83,7 +80,7 @@ public class HandGUI : MonoBehaviour
         tileButton.onClick.AddListener(() => OnTileClick(tile));
         tileUI.SetActive(true);
 
-        return tileButton;
+        return tileUI;
     }
 
     private IEnumerator UpdateHand(Tile drawnTile)
@@ -98,7 +95,16 @@ public class HandGUI : MonoBehaviour
             if (!drawnTile.IsUnityNull() && drawnTile.id == tile.id) { continue; }
             CreateTileUI(tile);
         }
-        if (!drawnTile.IsUnityNull()) { CreateTileUI(drawnTile); }
+
+        if (!drawnTile.IsUnityNull()) { 
+            GameObject blankTile = CreateTileUI(drawnTile); 
+            UnityEngine.UI.Image tileImage = blankTile.GetComponent<UnityEngine.UI.Image>();
+            RectTransform tileRect = blankTile.GetComponent<RectTransform>();
+            tileRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, tileRect.rect.width*1/2);
+            tileImage.enabled = false;
+
+            CreateTileUI(drawnTile);
+        }
     }
 
     private void SetClientHand(PlayerHand clientHand)

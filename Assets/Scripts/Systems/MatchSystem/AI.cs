@@ -65,7 +65,7 @@ public class AI : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        playerHand = PlayerHand.CreateInstance<PlayerHand>();
+        playerHand = ScriptableObject.CreateInstance<PlayerHand>();
     }
 
     // Update is called once per frame
