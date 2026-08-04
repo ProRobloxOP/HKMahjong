@@ -20,61 +20,61 @@ public class Tile
     public bool inCheung;
     public bool inPong;
 
-    private String WindToString()
+    private string WindTostring()
     {
         return name;
     }
 
-    private String NormalToString()
+    private string NormalTostring()
     {
         return number.ToString() + suit[0];
     }
 
-    private String CharToString()
+    private string CharTostring()
     {
         return number + "M";
     }
 
-    private String FlowerToString()
+    private string FlowerTostring()
     {
         return name + "F";
     }
     
-    private String SeasonToString()
+    private string SeasonTostring()
     {
         return name + "T";
     }
 
-    private String DragonToString()
+    private string DragonTostring()
     {
         return name[0] + "D";
     }
 
-    override public String ToString()
+    override public string ToString()
     {
-        Dictionary<String, Func<String>> toStringTypes = new Dictionary<string, Func<String>>
+        Dictionary<string, Func<string>> tostringTypes = new Dictionary<string, Func<string>>
         {
-            ["Char"] = CharToString,
-            ["Dragon"] = DragonToString,
-            ["Wind"] = WindToString,
-            ["Season"] = SeasonToString,
-            ["Flower"] = FlowerToString
+            ["Char"] = CharTostring,
+            ["Dragon"] = DragonTostring,
+            ["Wind"] = WindTostring,
+            ["Season"] = SeasonTostring,
+            ["Flower"] = FlowerTostring
         };
 
-        if (toStringTypes.ContainsKey(suit)) { return toStringTypes[suit](); }
-        return NormalToString();
+        if (tostringTypes.ContainsKey(suit)) { return tostringTypes[suit](); }
+        return NormalTostring();
     }
 }
 
 class TileTracker
 {
-    public static Dictionary<String, Dictionary<int, int>> Normal = new Dictionary<string, Dictionary<int, int>>
+    public static Dictionary<string, Dictionary<int, int>> Normal = new Dictionary<string, Dictionary<int, int>>
     {
         ["Char"] = new Dictionary<int, int>{},
         ["Circle"] = new Dictionary<int, int>{},
         ["Stick"] = new Dictionary<int, int>{}
     };
-    public static Dictionary<String, Dictionary<String, int>> Special = new Dictionary<string, Dictionary<string, int>>
+    public static Dictionary<string, Dictionary<string, int>> Special = new Dictionary<string, Dictionary<string, int>>
     {
         ["Dragon"] = new Dictionary<string, int>{},
         ["Wind"] = new Dictionary<string, int>{},
@@ -105,7 +105,7 @@ public class TileCreator : MonoBehaviour
          new Vector3(tileTransform.position.x + (row-1)*tileBounds.x*TileSettings.general["AxisSpacing"]*direction, tileTransform.position.y, tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]);
     }
 
-    public static Vector3 SetTilePos(GameObject tile, int column, int row, String axis, int direction)
+    public static Vector3 SetTilePos(GameObject tile, int column, int row, string axis, int direction)
     {
         if (axis == "x")
         {
@@ -114,7 +114,7 @@ public class TileCreator : MonoBehaviour
         return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction, false);
     }
 
-    public static Vector3 SetTilePos(GameObject tile, int column, int row, String axis, int direction, bool switchRowProp)
+    public static Vector3 SetTilePos(GameObject tile, int column, int row, string axis, int direction, bool switchRowProp)
     {
         if (axis == "x")
         {
@@ -123,9 +123,9 @@ public class TileCreator : MonoBehaviour
         return SetTilePosZ(tile.transform, tile.GetComponent<Renderer>().bounds.size, column, row, direction, switchRowProp);
     }
 
-    private String AssignRandomSuit()
+    private string AssignRandomSuit()
     {
-        Dictionary<String, float> suitSums = new Dictionary<string, float>
+        Dictionary<string, float> suitSums = new Dictionary<string, float>
         {
             ["Char"] = TileSettings.general["Char"] - TileTracker.Normal["Char"].Sum(pair => pair.Value),
             ["Circle"] = TileSettings.general["Circle"] - TileTracker.Normal["Circle"].Sum(pair => pair.Value),
@@ -148,10 +148,10 @@ public class TileCreator : MonoBehaviour
         return null;
     }
 
-    private Tile AssignNormalTile(String suit)
+    private Tile AssignNormalTile(string suit)
     {
         Dictionary<int, int> usedTiles = TileTracker.Normal[suit];
-        Dictionary<String, String> tilePrefixes = new Dictionary<string, string>
+        Dictionary<string, string> tilePrefixes = new Dictionary<string, string>
         {
           ["Char"] = "M",
           ["Circle"] = "C",
@@ -181,25 +181,25 @@ public class TileCreator : MonoBehaviour
         };
     }
 
-    private Tile AssignSpecialTile(String suit)
+    private Tile AssignSpecialTile(string suit)
     {
-        Dictionary<String, int> usedTiles = TileTracker.Special[suit];
-        String[] tileTypes = (suit.Equals("Dragon"))? new string[] {"White", "Red", "Green"}: 
-            (suit.Equals("Wind"))? new string[] {"East", "South", "North", "West"} : new string[] {"1", "2", "3", "4"};
+        Dictionary<string, int> usedTiles = TileTracker.Special[suit];
+        string[] tileTypes = suit.Equals("Dragon")? new string[] {"White", "Red", "Green"}: 
+            suit.Equals("Wind")? new string[] {"East", "South", "North", "West"} : new string[] {"1", "2", "3", "4"};
         int total = (int) TileSettings.general[suit] - usedTiles.Sum(pair => pair.Value);
         int n = UnityEngine.Random.Range(1, total);
-        String name = "";
+        string name = "";
 
         foreach (string tileName in tileTypes)
         {
-            int leftover = 4 - ((usedTiles.ContainsKey(tileName))? usedTiles[tileName] : 0);
+            int leftover = 4 - (usedTiles.ContainsKey(tileName)? usedTiles[tileName] : 0);
             n -= leftover;
             name = tileName;
 
             if (n <= 0) { break; }
         }
 
-        usedTiles[name] = (usedTiles.ContainsKey(name))? usedTiles[name] + 1 : 1;
+        usedTiles[name] = usedTiles.ContainsKey(name)? usedTiles[name] + 1 : 1;
         TileTracker.total++;
 
         return new Tile
@@ -211,7 +211,7 @@ public class TileCreator : MonoBehaviour
 
     private Tile AssignNewTile(int id)
     {
-        String suit = AssignRandomSuit();
+        string suit = AssignRandomSuit();
         Tile tile = (!TileTracker.Normal.ContainsKey(suit))? AssignSpecialTile(suit) : AssignNormalTile(suit);
         tile.lastTile = (id == TileSettings.general["Total"])? true : false;
         tile.fromWall = true;
@@ -267,7 +267,7 @@ public class TileCreator : MonoBehaviour
 
     public static void RemoveTile(GameObject tiles, int id)
     {
-        UnityEngine.Object.Destroy(tiles.transform.Find(id.ToString()).gameObject);
+        Destroy(tiles.transform.Find(id.ToString()).gameObject);
         if (id + 1 > TileSettings.general["Total"] || id % 2 == 0){ return; }
 
         GameObject nextTile = tiles.transform.Find((id + 1).ToString()).gameObject;

@@ -22,6 +22,7 @@ public class AI : MonoBehaviour
     private void SetupHand()
     {
         GameObject[] rootObjs = SceneManager.GetActiveScene().GetRootGameObjects();
+        bool isDealer = RoundLogic.GetDealerIndex() == playerIndex;
         GameObject Tiles = null;
 
         foreach (GameObject gameObject in rootObjs)
@@ -33,7 +34,8 @@ public class AI : MonoBehaviour
             }
         }
 
-        playerHand.SetupPlayerHand(Tiles, playerIndex, false);
+        playerHand.SetupPlayerHand(Tiles, playerIndex, isDealer);
+        if (isDealer) { DropTile(); }
     } 
 
     private void DropTile()
@@ -51,7 +53,7 @@ public class AI : MonoBehaviour
         }
         if (toDrop.Count == 0) { return; }
 
-        int n = UnityEngine.Random.Range(0, toDrop.Count - 1);
+        int n = Random.Range(0, toDrop.Count - 1);
         playerHand.DropTile(playerIndex, toDrop[n]);
     }
 

@@ -85,19 +85,29 @@ public class PlayerHand : ScriptableObject
     {
         ["OnDraw"] = new List<UnityAction<object>>()
     };
-    public static event Action<int, Tile> PlayerDroppedTile;
+    public static event Action<int, Tile> TileDropped;
+    private bool actionPending = false;
     private GameObject Tiles;
     //private bool allConcealed;
     private int playerIndex;
 
     void OnEnable()
     {
-        PlayerDroppedTile += OnTileDrop;
+        TileDropped += OnTileDrop;
     }
 
     void OnDisable()
     {
-        PlayerDroppedTile -= OnTileDrop;
+        TileDropped -= OnTileDrop;
+    }
+
+    public void SetPendingAction(bool isPending) {
+        actionPending = isPending;
+    }
+
+    public bool IsActionPending()
+    {
+        return actionPending;
     }
 
     public int GetPlayerIndex()
@@ -122,17 +132,7 @@ public class PlayerHand : ScriptableObject
 
     public List<Tile> GetHandList()
     {
-        List<Tile> handList = new List<Tile>();
-
-        foreach (List<Tile> tileList in tiles.Values)
-        {
-            foreach (Tile tile in tileList)
-            {
-                handList.Add(tile);
-            }
-        }
-
-        return handList;
+        return GetHandList(false);
     }
 
     public List<Tile> GetHandList(bool excludeOpen)
@@ -151,13 +151,13 @@ public class PlayerHand : ScriptableObject
         return handList;
     }
 
-    private int CompareOrder(string[] order, Tile tile1, Tile tile2)
+    private int CompareTileOrder(string[] orderArray, Tile tile1, Tile tile2)
     {
         string name1 = tile1.name;
         string name2 = tile2.name;
         if (name1.Equals(name2)) { return 0; }
 
-        foreach (string rank in order)
+        foreach (string rank in orderArray)
         {
             if (name1.Equals(rank)){ return 1; }
             if (name2.Equals(rank)) { return -1; }
@@ -188,7 +188,7 @@ public class PlayerHand : ScriptableObject
         string[] order = {"White", "Green", "Red"};
         dragonTiles.Add(tile);
 
-        dragonTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
+        dragonTiles.Sort((tile1, tile2) => CompareTileOrder(order, tile1, tile2));
     }
 
     private void DrawWindTile(Tile tile)
@@ -197,7 +197,7 @@ public class PlayerHand : ScriptableObject
         string[] order = {"East", "South", "West", "North"};
         windTiles.Add(tile);
 
-        windTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
+        windTiles.Sort((tile1, tile2) => CompareTileOrder(order, tile1, tile2));
     }
 
     public void DrawTilesFromWall(int iterations)
@@ -253,7 +253,7 @@ public class PlayerHand : ScriptableObject
         suitList.Remove(tile);
         tile.open = true;
 
-        PlayerDroppedTile?.Invoke(playerIndex, tile);
+        TileDropped?.Invoke(playerIndex, tile);
         VisualizeDrop(playerIndex, tile);
     }
 
@@ -262,7 +262,7 @@ public class PlayerHand : ScriptableObject
         this.playerIndex = playerIndex;
         this.Tiles = Tiles;
         //allConcealed = true;
-        DrawTilesFromWall((dealer)? 14 : 13);
+        DrawTilesFromWall(dealer? 14 : 13);
 
         return tiles;
     }

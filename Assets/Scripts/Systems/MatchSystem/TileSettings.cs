@@ -7,7 +7,7 @@ public struct TileStack
 {
     public Vector3 pos;
     public Quaternion rot;
-    public String axis;
+    public string axis;
     public int direction;
 }
 
@@ -16,7 +16,7 @@ public struct DropRow
 {
     public Vector3 pos;
     public Quaternion rot;
-    public String axis;
+    public string axis;
     public int direction;
     public int maxColumn;
 }

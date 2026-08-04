@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MainClient : MonoBehaviour
 {
-
     public static event Action<PlayerHand> getClientHand;
     private int playerIndex = 1;
 
@@ -36,38 +35,25 @@ public class MainClient : MonoBehaviour
             }
         }
 
-        clientHand.SetupPlayerHand(Tiles, 1, true);
+        clientHand.SetupPlayerHand(Tiles, playerIndex, RoundLogic.GetDealerIndex() == playerIndex);
         getClientHand?.Invoke(clientHand);
     }
 
-    private void DropTile()
+    private IEnumerator DrawTileCoroutine(int playerIndex)
     {
-        List<Tile> tiles = new List<Tile>{};
-
-        foreach (List<Tile> tileList in clientHand.GetCurrentTiles().Values)
-        {
-            foreach (Tile tile in tileList)
-            {
-                if (tile.open) { continue; }
-                tiles.Add(tile);
-            }
-        }
-        if (tiles.Count == 0) { return; }
-
-        int n = UnityEngine.Random.Range(0, tiles.Count - 1);
-        clientHand.DropTile(playerIndex, tiles[n]);
+        if (playerIndex != this.playerIndex || clientHand.IsActionPending()) { yield break; }
+        clientHand.DrawTilesFromWall(1);
     }
 
     private void DrawTile(int playerIndex)
     {
-        if (playerIndex != this.playerIndex) { return; }
-        clientHand.DrawTilesFromWall(1);
+        StartCoroutine(DrawTileCoroutine(playerIndex));
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        clientHand = PlayerHand.CreateInstance<PlayerHand>();
+        clientHand = ScriptableObject.CreateInstance<PlayerHand>();
     }
 
     // Update is called once per frame

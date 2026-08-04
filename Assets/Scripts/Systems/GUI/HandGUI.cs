@@ -6,12 +6,14 @@ using UnityEngine;
 
 public class HandGUI : MonoBehaviour
 {
+
+    private Tile blankTile = new Tile { id = -1, name = "Back", suit = "Wind" };
     private bool canTileDrop = false;
     private PlayerHand clientHand;
 
     void OnEnable()
     {
-        PlayerHand.PlayerDroppedTile += CheckHandActions;
+        PlayerHand.TileDropped += CheckHandActions;
         MainClient.getClientHand += SetClientHand;
         WelcomeScreen.StartRound += UpdateHandUI;
         RoundLogic.DrawTile += EnableTileDrop;
@@ -19,7 +21,7 @@ public class HandGUI : MonoBehaviour
 
     void OnDisable()
     {
-        PlayerHand.PlayerDroppedTile -= CheckHandActions;
+        PlayerHand.TileDropped -= CheckHandActions;
         MainClient.getClientHand -= SetClientHand;
         WelcomeScreen.StartRound -= UpdateHandUI;
         RoundLogic.DrawTile -= EnableTileDrop;
@@ -51,9 +53,20 @@ public class HandGUI : MonoBehaviour
 
     private void OnTileClick(Tile tile)
     {
-        if (!canTileDrop) { return; }
+        if (!canTileDrop || clientHand.IsActionPending()) { return; }
         clientHand.DropTile(clientHand.GetPlayerIndex(), tile);
         canTileDrop = false;
+    }
+
+    private GameObject CreateSpacerTile()
+    {
+        GameObject spacer = CreateTileUI(blankTile); 
+        UnityEngine.UI.Image tileImage = spacer.GetComponent<UnityEngine.UI.Image>();
+        RectTransform tileRect = spacer.GetComponent<RectTransform>();
+        tileRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, tileRect.rect.width*1/2);
+        tileImage.enabled = false;
+
+        return spacer;
     }
 
     private GameObject CreateTileUI(Tile tile)
@@ -96,15 +109,9 @@ public class HandGUI : MonoBehaviour
             CreateTileUI(tile);
         }
 
-        if (!drawnTile.IsUnityNull()) { 
-            GameObject blankTile = CreateTileUI(drawnTile); 
-            UnityEngine.UI.Image tileImage = blankTile.GetComponent<UnityEngine.UI.Image>();
-            RectTransform tileRect = blankTile.GetComponent<RectTransform>();
-            tileRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, tileRect.rect.width*1/2);
-            tileImage.enabled = false;
-
-            CreateTileUI(drawnTile);
-        }
+        if (drawnTile.IsUnityNull()){ yield break; }
+        CreateSpacerTile();
+        CreateTileUI(drawnTile);
     }
 
     private void SetClientHand(PlayerHand clientHand)

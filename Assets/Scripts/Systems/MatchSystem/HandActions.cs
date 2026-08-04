@@ -94,7 +94,7 @@ public class HandActions : ScriptableObject
           List<List<Tile>> cheungs = new List<List<Tile>>{};
           string[] check = new string[] {"Char", "Stick", "Circle"};
           
-          foreach (String suit in check)
+          foreach (string suit in check)
           {
                List<Tile> suitTiles = hand[suit];
                List<Tile> currentCheung = new List<Tile>{};
@@ -173,6 +173,7 @@ public class HandActions : ScriptableObject
     {
         List<Tile> pongTiles = new List<Tile>();
 
+        if (tile.open) { return pongTiles; }
         foreach (Tile ownedTile in hand[tile.suit])
         {
             if (!ownedTile.suit.Equals(tile.suit) || ownedTile.open) { continue; }
