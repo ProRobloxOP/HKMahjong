@@ -9,9 +9,17 @@ public class HandActions : ScriptableObject
 {
      public static bool CanWin(Dictionary<string, List<Tile>> hand)
      {
+          return CanWin(hand, null);
+     }
+
+     public static bool CanWin(Dictionary<string, List<Tile>> hand, Tile droppedTile)
+     {
+          if (!droppedTile.IsUnityNull()) { hand[droppedTile.suit].Add(droppedTile); }
+          Debug.Log(ContainsCheung(hand).Count);
+          Debug.Log(ContainsPong(hand).Count);
           int totalMelds = ContainsPong(hand).Count + ContainsCheung(hand).Count;
-          string[] noCheck = new string[] {"Flower"};
-          List<Tile> pair = new List<Tile>{};
+          string[] noCheck = new string[] { "Flower" };
+          List<Tile> pair = new List<Tile> { };
           if (totalMelds < 4) { return false; }
 
           foreach (string suit in hand.Keys)
@@ -19,7 +27,7 @@ public class HandActions : ScriptableObject
                List<Tile> suitTiles = hand[suit];
                if (noCheck.Contains(suit)) { continue; }
 
-               foreach(Tile tile in suitTiles)
+               foreach (Tile tile in suitTiles)
                {
                     if (tile.inCheung || tile.inPong) { continue; }
                     pair.Add(tile);
@@ -35,7 +43,7 @@ public class HandActions : ScriptableObject
 
           if (lone1.number.IsUnityNull() && !lone2.number.IsUnityNull()) { return false; }
           if (!lone1.number.IsUnityNull() && lone2.number.IsUnityNull()) { return false; }
-          if (lone1.number.IsUnityNull() && lone2.number.IsUnityNull() && !lone1.name.Equals(lone2.name)){ return false; }
+          if (lone1.number.IsUnityNull() && lone2.number.IsUnityNull() && !lone1.name.Equals(lone2.name)) { return false; }
           if (lone1.number != lone2.number) { return false; }
 
           return true;
@@ -43,13 +51,13 @@ public class HandActions : ScriptableObject
 
      public static List<List<Tile>> ContainsPong(Dictionary<string, List<Tile>> hand)
      {
-          List<List<Tile>> pongs = new List<List<Tile>>{};
-          string[] noCheck = new string[] {"Flower"};
+          List<List<Tile>> pongs = new List<List<Tile>> { };
+          string[] noCheck = new string[] { "Flower" };
 
           foreach (string suit in hand.Keys)
           {
                List<Tile> suitTiles = hand[suit];
-               List<Tile> currentPong = new List<Tile>{};
+               List<Tile> currentPong = new List<Tile> { };
                if (noCheck.Contains(suit)) { continue; }
 
                foreach (Tile tile in suitTiles)
@@ -69,7 +77,7 @@ public class HandActions : ScriptableObject
                          Tile other = suitTiles[j];
                          if (other.number.IsUnityNull() && !target.number.IsUnityNull()) { break; }
                          if (!other.number.IsUnityNull() && target.number.IsUnityNull()) { break; }
-                         if (other.number.IsUnityNull() && target.number.IsUnityNull() && !other.name.Equals(target.name)){ break; }
+                         if (other.number.IsUnityNull() && target.number.IsUnityNull() && !other.name.Equals(target.name)) { break; }
                          if (target.number != other.number) { break; }
 
                          currentPong.Add(other);
@@ -82,7 +90,7 @@ public class HandActions : ScriptableObject
                     }
 
                     pongs.Add(currentPong);
-                    currentPong = new List<Tile>{};
+                    currentPong = new List<Tile> { };
                }
           }
 
@@ -91,13 +99,13 @@ public class HandActions : ScriptableObject
 
      public static List<List<Tile>> ContainsCheung(Dictionary<string, List<Tile>> hand)
      {
-          List<List<Tile>> cheungs = new List<List<Tile>>{};
-          string[] check = new string[] {"Char", "Stick", "Circle"};
-          
+          List<List<Tile>> cheungs = new List<List<Tile>> { };
+          string[] check = new string[] { "Char", "Stick", "Circle" };
+
           foreach (string suit in check)
           {
                List<Tile> suitTiles = hand[suit];
-               List<Tile> currentCheung = new List<Tile>{};
+               List<Tile> currentCheung = new List<Tile> { };
 
                foreach (Tile tile in suitTiles)
                {
@@ -128,67 +136,92 @@ public class HandActions : ScriptableObject
                     }
 
                     cheungs.Add(currentCheung);
-                    currentCheung = new List<Tile>{};
+                    currentCheung = new List<Tile> { };
                }
           }
 
           return cheungs;
      }
-     public static List<Tile> CanKong(Dictionary<string, List<Tile>> hand, Tile tile)
-    {
-        List<Tile> pongList = CanPong(hand, tile);
-        if (pongList.Contains(tile)){ pongList.Remove(tile); }
-        if (pongList.Count < 3) { pongList.Clear(); }
-        return pongList;
-    }
+     public static List<Tile> CanKong(Dictionary<string, List<Tile>> closedHand, Tile tile)
+     {
+          List<Tile> pongList = CanPong(closedHand, tile);
+          if (pongList.Contains(tile)) { pongList.Remove(tile); }
+          if (pongList.Count < 3) { pongList.Clear(); }
+          return pongList;
+     }
 
-    public static List<Tile> CanCheung(Dictionary<string, List<Tile>> hand, Tile tile)
-    {
-        List<Tile> cheungTiles = new List<Tile>();
-        List<Tile> backCheung = new List<Tile>();
-        List<Tile> fowardCheung = new List<Tile>();
-        if (tile.number.IsUnityNull()) { return cheungTiles; }
+     public static List<Tile> CanPong(Dictionary<string, List<Tile>> closedHand, Tile tile)
+     {
+          List<Tile> pongTiles = new List<Tile>();
+          string[] noCheck = new string[] { "Flower" };
 
-        foreach (Tile ownedTile in hand[tile.suit])
-        {
-            int numDiff = (int)(tile.number - ownedTile.number);
-            if (ownedTile.open) { continue; }
-            if (numDiff > 0 && numDiff <= 2)
-            {
-                backCheung.Add(ownedTile);
-            }
-            if (numDiff < 0 && numDiff >= -2)
-            {
-                fowardCheung.Add(ownedTile);
-            }
-        }
+          if (noCheck.Contains(tile.suit)) { return pongTiles; }
+          foreach (Tile ownedTile in closedHand[tile.suit])
+          {
+               if (!ownedTile.suit.Equals(tile.suit) || ownedTile.open) { continue; }
+               if (!tile.number.IsUnityNull() && ownedTile.number == tile.number)
+               {
+                    pongTiles.Add(ownedTile);
+                    continue;
+               }
+               if (!ownedTile.name.IsUnityNull() && ownedTile.name.Equals(tile.name))
+               {
+                    pongTiles.Add(ownedTile);
+               }
+          }
+          if (pongTiles.Count() < 2) { pongTiles.Clear(); }
 
-        if (backCheung.Count() > 1) { cheungTiles.AddRange(backCheung.GetRange(0, backCheung.Count())); }
-        if (fowardCheung.Count() > 1) { cheungTiles.AddRange(fowardCheung.GetRange(0, fowardCheung.Count())); }
-        
-        return cheungTiles;
-    }
+          return pongTiles;
+     }
 
-    public static List<Tile> CanPong(Dictionary<string, List<Tile>> hand, Tile tile)
-    {
-        List<Tile> pongTiles = new List<Tile>();
+     public static List<Tile> CanCheung(Dictionary<string, List<Tile>> closedHand, Tile tile)
+     {
+          List<Tile> cheungTiles = new List<Tile>();
+          List<Tile> backCheung = new List<Tile>();
+          List<Tile> fowardCheung = new List<Tile>();
+          List<int> checkedInts = new List<int>();
+          bool foundAdjacentTile = false;
 
-        if (tile.open) { return pongTiles; }
-        foreach (Tile ownedTile in hand[tile.suit])
-        {
-            if (!ownedTile.suit.Equals(tile.suit) || ownedTile.open) { continue; }
-            if (!tile.number.IsUnityNull() && ownedTile.number == tile.number)
-            {
-                pongTiles.Add(ownedTile);
-                continue;
-            }
-            if (!ownedTile.name.IsUnityNull() && ownedTile.name.Equals(tile.name))
-            {
-                pongTiles.Add(ownedTile);
-            }
-        }
-        if (pongTiles.Count() < 2) { pongTiles.Clear(); }
+          if (tile.number.IsUnityNull()) { return cheungTiles; }
 
-        return pongTiles;
-    }
+          foreach (Tile ownedTile in closedHand[tile.suit])
+          {
+               int tileNumber = (int)ownedTile.number;
+               int numDiff = (int)(tile.number - tileNumber);
+               if (ownedTile.open || checkedInts.Contains(tileNumber)) { continue; }
+               if (numDiff > 0 && numDiff <= 2)
+               {
+                    checkedInts.Add(tileNumber);
+                    backCheung.Add(ownedTile);
+               }
+               if (numDiff < 0 && numDiff >= -2)
+               {
+                    checkedInts.Add(tileNumber);
+                    fowardCheung.Add(ownedTile);
+               }
+          }
+
+          foreach (Tile ownedTile in fowardCheung)
+          {
+               if ((int) (ownedTile.number - tile.number) != 1) { continue; }
+               foundAdjacentTile = true;
+               break; 
+          }
+          if (!foundAdjacentTile) { fowardCheung.Clear(); }
+          foundAdjacentTile = false;
+
+          foreach (Tile ownedTile in backCheung)
+          {
+               if ((int) (ownedTile.number - tile.number) != -1) { continue; }
+               foundAdjacentTile = true;
+               break; 
+          }
+          if (!foundAdjacentTile) { backCheung.Clear(); }
+
+          cheungTiles.AddRange(backCheung);
+          cheungTiles.AddRange(fowardCheung);
+          if (cheungTiles.Count < 2) { cheungTiles.Clear(); }
+
+          return cheungTiles;
+     }
 }

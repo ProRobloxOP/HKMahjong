@@ -10,32 +10,13 @@ public class AI : MonoBehaviour
 
     private void OnEnable()
     {
-        TileCreator.CreatedTilesEvent += SetupHand;
+        RoundLogic.BeginGame += Setup;
         RoundLogic.DrawTile += DrawTile;
     } 
     private void OnDisable()
     {
-        TileCreator.CreatedTilesEvent -= SetupHand;
+        RoundLogic.BeginGame -= Setup;
         RoundLogic.DrawTile -= DrawTile;
-    } 
-
-    private void SetupHand()
-    {
-        GameObject[] rootObjs = SceneManager.GetActiveScene().GetRootGameObjects();
-        bool isDealer = RoundLogic.GetDealerIndex() == playerIndex;
-        GameObject Tiles = null;
-
-        foreach (GameObject gameObject in rootObjs)
-        {
-            if (gameObject.name.Equals("Tiles"))
-            {
-                Tiles = gameObject;
-                break;
-            }
-        }
-
-        playerHand.SetupPlayerHand(Tiles, playerIndex, isDealer);
-        if (isDealer) { DropTile(); }
     } 
 
     private void DropTile()
@@ -64,15 +45,9 @@ public class AI : MonoBehaviour
         DropTile();
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Setup()
     {
-        playerHand = ScriptableObject.CreateInstance<PlayerHand>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+        playerHand = RoundLogic.GetPlayerHand(playerIndex);
+        if ( (bool) playerHand.GetStatus("IsDealer")) { DropTile(); }
+    } 
 }

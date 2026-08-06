@@ -1,46 +1,43 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ActionsGUI : MonoBehaviour
 {
     private Dictionary<string, GameObject> actionGUIs = new Dictionary<string, GameObject>();
+    public static event Action<int, string> PlayerAcceptedAction;
     private PlayerHand clientHand;
 
     void OnEnable()
     {
-        MainClient.getClientHand += SetClientHand;
-        PlayerHand.TileDropped += OnTileDrop;
+        MainClient.SetClientHand += SetClientHand;
+        RoundLogic.PlayerActionPendingUI += OnTileDrop;
     }
 
     void OnDisable()
     {
-        MainClient.getClientHand -= SetClientHand;
-        PlayerHand.TileDropped -= OnTileDrop;
+        MainClient.SetClientHand -= SetClientHand;
+        RoundLogic.PlayerActionPendingUI -= OnTileDrop;
     }
 
-    private bool PlayerIsBefore(int playerIndex)
-    {
-        return (playerIndex == 4)? clientHand.GetPlayerIndex() == 1 : clientHand.GetPlayerIndex() - 1 == playerIndex;
-    } 
-
     private void CancelActionListener()
+    {
+        CancelActionListener("Cancel");
+    }
+
+    private void CancelActionListener(string actionName)
     {
         foreach (GameObject actionGUI in actionGUIs.Values)
         {
             actionGUI.SetActive(false);
         }
-        clientHand.SetPendingAction(false);
-    }
-
-    private IEnumerator WaitToDraw()
-    {
-        yield return new WaitUntil(() => !clientHand.IsActionPending());
-        clientHand.DrawTilesFromWall(1);
+        PlayerAcceptedAction?.Invoke(clientHand.GetPlayerIndex(), actionName);
     }
 
     private void OnTileDrop(int playerIndex, Tile droppedTile)
     {
+        Dictionary<string, List<Tile>> currTiles = clientHand.GetCurrentTiles();
+        if (droppedTile.suit == "Flower" || droppedTile.suit == "Season") { return; }
         if (playerIndex == clientHand.GetPlayerIndex())
         {
             foreach (GameObject actionGUI in actionGUIs.Values)
@@ -50,36 +47,29 @@ public class ActionsGUI : MonoBehaviour
             return;
         }
 
-        Dictionary<string, List<Tile>> currTiles = clientHand.GetCurrentTiles();
+        if (!(bool) clientHand.GetStatus("ActionPending")) { return; }
         if (HandActions.CanKong(currTiles, droppedTile).Count > 0) { actionGUIs["Gang"].SetActive(true); }
         if (HandActions.CanPong(currTiles, droppedTile).Count > 0) { actionGUIs["Peng"].SetActive(true); }
-        if (PlayerIsBefore(playerIndex) && HandActions.CanCheung(currTiles, droppedTile).Count > 0){ actionGUIs["Chi"].SetActive(true); }
-        
-        foreach (GameObject actionGUI in actionGUIs.Values)
-        {
-            if (!actionGUI.activeInHierarchy) { continue; }
-            actionGUIs["Cancel"].SetActive(true);
-            clientHand.SetPendingAction(true);
-            break;
-        }
-        if (PlayerIsBefore(playerIndex)) { StartCoroutine(WaitToDraw()); }
+        if (RoundLogic.PlayerIsBefore(playerIndex, clientHand.GetPlayerIndex()) && HandActions.CanCheung(currTiles, droppedTile).Count > 0){ actionGUIs["Chi"].SetActive(true); }
+        actionGUIs["Cancel"].SetActive(true);
     }
 
-    private void OnTileDraw(Tile drawedTile)
+    private void OnTileDraw(PlayerHand playerHand, Tile drawedTile)
     {
         Dictionary<string, List<Tile>> currTiles = clientHand.GetCurrentTiles();
+
+        if (!(bool) clientHand.GetStatus("ActionPending")) { return; }
         if (HandActions.CanKong(currTiles, drawedTile).Count > 0)
         {
             actionGUIs["Cancel"].SetActive(true);
             actionGUIs["Gang"].SetActive(true);
-            clientHand.SetPendingAction(true);
         }
     }
 
     private void SetClientHand(PlayerHand clientHand)
     {
         this.clientHand = clientHand;
-        clientHand.OnDraw((object tile) => OnTileDraw((Tile) tile));
+        clientHand.OnDraw(OnTileDraw);
     }
 
     private void FindActionGUIs()

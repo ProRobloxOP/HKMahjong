@@ -5,43 +5,24 @@ using UnityEngine.SceneManagement;
 
 public class MainClient : MonoBehaviour
 {
-    public static event Action<PlayerHand> getClientHand;
+    public static event Action<PlayerHand> SetClientHand;
+    private static PlayerHand clientHand;
     private int playerIndex = 1;
 
     private void OnEnable()
     {
-        TileCreator.CreatedTilesEvent += SetupClientHand;
+        TileCreator.CreatedTilesEvent += Setup;
         RoundLogic.DrawTile += DrawTile;
     }
     private void OnDisable() 
     { 
-        TileCreator.CreatedTilesEvent -= SetupClientHand; 
+        TileCreator.CreatedTilesEvent -= Setup;
         RoundLogic.DrawTile -= DrawTile;
-    }
-
-    private static PlayerHand clientHand;
-
-    private void SetupClientHand()
-    {
-        GameObject[] rootObjs = SceneManager.GetActiveScene().GetRootGameObjects();
-        GameObject Tiles = null;
-
-        foreach (GameObject gameObject in rootObjs)
-        {
-            if (gameObject.name.Equals("Tiles"))
-            {
-                Tiles = gameObject;
-                break;
-            }
-        }
-
-        clientHand.SetupPlayerHand(Tiles, playerIndex, RoundLogic.GetDealerIndex() == playerIndex);
-        getClientHand?.Invoke(clientHand);
     }
 
     private IEnumerator DrawTileCoroutine(int playerIndex)
     {
-        if (playerIndex != this.playerIndex || clientHand.IsActionPending()) { yield break; }
+        if (playerIndex != this.playerIndex || (bool) clientHand.GetStatus("ActionPending")) { yield break; }
         clientHand.DrawTilesFromWall(1);
     }
 
@@ -50,16 +31,9 @@ public class MainClient : MonoBehaviour
         StartCoroutine(DrawTileCoroutine(playerIndex));
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Setup()
     {
-        clientHand = ScriptableObject.CreateInstance<PlayerHand>();
+        clientHand = RoundLogic.GetPlayerHand(playerIndex);
+        SetClientHand?.Invoke(clientHand);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
 }

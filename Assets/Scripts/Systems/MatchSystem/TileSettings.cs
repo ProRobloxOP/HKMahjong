@@ -11,20 +11,10 @@ public struct TileStack
     public int direction;
 }
 
-[Serializable]
-public struct DropRow
-{
-    public Vector3 pos;
-    public Quaternion rot;
-    public string axis;
-    public int direction;
-    public int maxColumn;
-}
-
 [CreateAssetMenu(fileName = "TileSettings", menuName = "Scriptable Objects/TileSettings")]
 public class TileSettings : ScriptableObject
 {
-    public static Dictionary<String, float> general = new Dictionary<string, float>
+    public static readonly Dictionary<string, float> general = new Dictionary<string, float>
     {
         ["Total"] = 144,
 
@@ -46,43 +36,39 @@ public class TileSettings : ScriptableObject
         ["MaxRepeat"] = 4
     };
 
-    public static DropRow[] dropSetting = new DropRow[]
+    public static readonly TileStack[] DropSetting = new TileStack[]
     {
-        new DropRow
+        new TileStack
         {
             pos = new Vector3(-183, 40, 300),
             rot = Quaternion.Euler(new Vector3(180, 180, 90)),
             axis = "x",
             direction = 1,
-            maxColumn = 8
         },
-        new DropRow
+        new TileStack
         {
             pos = new Vector3(57, 40, 335),
             rot = Quaternion.Euler(new Vector3(180, 90, 90)),
             axis = "z",
             direction = 1,
-            maxColumn = 6
         },
-        new DropRow
+        new TileStack
         {
             pos = new Vector3(20, 40, 500),
             rot = Quaternion.Euler(new Vector3(180, 0, 90)),
             axis = "x",
             direction = -1,
-            maxColumn = 8
         },
-        new DropRow
+        new TileStack
         {
             pos = new Vector3(-145, 40, 490),
             rot = Quaternion.Euler(new Vector3(180, 270, 90)),
             axis = "z",
             direction = -1,
-            maxColumn = 6
         }
     };
 
-    public static TileStack[] boardSetting =
+    public static readonly TileStack[] BoardSetting =
     {
         new TileStack
         {
@@ -115,5 +101,10 @@ public class TileSettings : ScriptableObject
             axis = "z",
             direction = -1
         },
+    };
+
+    public static readonly TileStack[] OutsideHandSettings = new TileStack[]
+    {
+        
     };
 }

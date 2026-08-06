@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -81,12 +82,14 @@ public class PlayerHand : ScriptableObject
         new List<Tile>{}
     };
 
-    private Dictionary<string, List<UnityAction<object>>> hookListeners = new Dictionary<string, List<UnityAction<object>>>
+    List<Action<PlayerHand, Tile>> onDrawListeners = new List<Action<PlayerHand, Tile>>();
+    
+    private Dictionary<string, object> statuses = new Dictionary<string, object>
     {
-        ["OnDraw"] = new List<UnityAction<object>>()
+        ["ActionPending"] = false,
+        ["IsDealer"] = false
     };
     public static event Action<int, Tile> TileDropped;
-    private bool actionPending = false;
     private GameObject Tiles;
     //private bool allConcealed;
     private int playerIndex;
@@ -101,18 +104,34 @@ public class PlayerHand : ScriptableObject
         TileDropped -= OnTileDrop;
     }
 
-    public void SetPendingAction(bool isPending) {
-        actionPending = isPending;
-    }
-
-    public bool IsActionPending()
+    public object GetStatus(string name)
     {
-        return actionPending;
+        return statuses[name];
     }
 
     public int GetPlayerIndex()
     {
         return playerIndex;
+    }
+
+    public void SetStatus(string name, object value)
+    {
+        statuses[name] = value;
+    }
+
+    private IEnumerator WaitForStatusChange(string name, Action<object> listener)
+    {
+        while (true)
+        {
+            object currVal = statuses[name];
+            yield return new WaitUntil(() => statuses[name] != currVal);
+            listener(statuses[name]);
+        }
+    }
+
+    public void OnStatusChange(MonoBehaviour monoRunner, string name, Action<object> listener)
+    {
+        monoRunner.StartCoroutine(WaitForStatusChange(name, listener));
     }
 
     public Dictionary<string, List<Tile>> GetCurrentTiles()
@@ -171,7 +190,7 @@ public class PlayerHand : ScriptableObject
         List<Tile> flowerTiles = tiles["Flower"];
         tile.open = true;
         flowerTiles.Add(tile);
-        DrawTilesFromWall(1);
+        DrawTilesFromWall(1, true);
     }
 
     private void DrawNormalTile(Tile tile)
@@ -202,7 +221,12 @@ public class PlayerHand : ScriptableObject
 
     public void DrawTilesFromWall(int iterations)
     {
-        List<Tile> wall = TileCreator.wall;
+        DrawTilesFromWall(iterations, false);
+    }
+
+    public void DrawTilesFromWall(int iterations, bool fromBack)
+    {
+        List<Tile> wall = TileCreator.GetWallTiles();
 
         for (int i = 0; i < iterations; i++)
         {
@@ -216,16 +240,13 @@ public class PlayerHand : ScriptableObject
                 ["Season"] = DrawFlower
             };
 
-            Tile tile = wall[0];
+            Tile tile = wall[fromBack? wall.Count - 1 : 0];
             TileCreator.RemoveTile(Tiles, tile.id);
-            CallOnDrawListeners(tile);
-            wall.RemoveAt(0);
+            wall.RemoveAt(fromBack? wall.Count - 1 : 0);
 
-            if (drawMethods.ContainsKey(tile.suit)) { 
-                drawMethods[tile.suit](tile);
-                continue;
-            }
-            DrawNormalTile(tile);
+            if (drawMethods.ContainsKey(tile.suit)) { drawMethods[tile.suit](tile); }
+            if (!drawMethods.ContainsKey(tile.suit)) { DrawNormalTile(tile); }
+            CallOnDrawListeners(tile);
         }
     }
 
@@ -237,7 +258,7 @@ public class PlayerHand : ScriptableObject
 
     private void VisualizeDrop(int playerIndex, Tile tile)
     {
-        DropRow dropRow = TileSettings.dropSetting[playerIndex - 1]; // eg. Player 1 -> Index 0 (First Index)
+        TileStack dropRow = TileSettings.DropSetting[playerIndex - 1]; // eg. Player 1 -> Index 0 (First Index)
         List<Tile> playerDropped = droppedTiles[playerIndex - 1];
         GameObject prefab = Resources.Load<GameObject>("Prefabs/Tiles/" + tile.ToString());
 
@@ -257,29 +278,27 @@ public class PlayerHand : ScriptableObject
         VisualizeDrop(playerIndex, tile);
     }
 
-    public Dictionary<string, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex, bool dealer)
+    public Dictionary<string, List<Tile>> Setup(GameObject Tiles, int playerIndex, bool isDealer)
     {
         this.playerIndex = playerIndex;
         this.Tiles = Tiles;
+        statuses["IsDealer"] = isDealer;
         //allConcealed = true;
-        DrawTilesFromWall(dealer? 14 : 13);
+        DrawTilesFromWall(isDealer? 14 : 13);
 
         return tiles;
     }
 
     private void CallOnDrawListeners(Tile tile)
-    {
-        List<UnityAction<object>> listeners = hookListeners["OnDraw"];
-        if (tile.open) { return; }
-        
-        foreach (UnityAction<object> listener in listeners)
+    {   
+        foreach (Action<PlayerHand, Tile> listener in onDrawListeners)
         {
-            listener(tile);
+            listener(this, tile);
         }
     }
 
-    public void OnDraw(UnityAction<object> call)
+    public void OnDraw(Action<PlayerHand, Tile> call)
     {
-        hookListeners["OnDraw"].Add(call);
+        onDrawListeners.Add(call);
     }
 }

@@ -8,23 +8,23 @@ public class HandGUI : MonoBehaviour
 {
 
     private Tile blankTile = new Tile { id = -1, name = "Back", suit = "Wind" };
+    private PlayerHand clientHand = null;
     private bool canTileDrop = false;
-    private PlayerHand clientHand;
 
     void OnEnable()
     {
         PlayerHand.TileDropped += CheckHandActions;
-        MainClient.getClientHand += SetClientHand;
-        WelcomeScreen.StartRound += UpdateHandUI;
+        MainClient.SetClientHand += SetClientHand;
         RoundLogic.DrawTile += EnableTileDrop;
+        RoundLogic.BeginGame += OnGameBegin;
     }
 
     void OnDisable()
     {
         PlayerHand.TileDropped -= CheckHandActions;
-        MainClient.getClientHand -= SetClientHand;
-        WelcomeScreen.StartRound -= UpdateHandUI;
+        MainClient.SetClientHand -= SetClientHand;
         RoundLogic.DrawTile -= EnableTileDrop;
+        RoundLogic.BeginGame -= OnGameBegin;
     }
 
     private void EnableTileDrop(int playerIndex)
@@ -53,7 +53,7 @@ public class HandGUI : MonoBehaviour
 
     private void OnTileClick(Tile tile)
     {
-        if (!canTileDrop || clientHand.IsActionPending()) { return; }
+        if (!canTileDrop || (bool) clientHand.GetStatus("ActionPending")) { return; }
         clientHand.DropTile(clientHand.GetPlayerIndex(), tile);
         canTileDrop = false;
     }
@@ -109,19 +109,25 @@ public class HandGUI : MonoBehaviour
             CreateTileUI(tile);
         }
 
-        if (drawnTile.IsUnityNull()){ yield break; }
+        if (drawnTile.IsUnityNull() || drawnTile.open){ yield break; }
         CreateSpacerTile();
         CreateTileUI(drawnTile);
     }
 
+    private void UpdateHandUI()
+    {
+        StartCoroutine(UpdateHand(null));
+    }
     private void SetClientHand(PlayerHand clientHand)
     {
         this.clientHand = clientHand;
-        clientHand.OnDraw((object tile) => StartCoroutine(UpdateHand((Tile) tile)));
+        clientHand.OnDraw((PlayerHand playerHand, Tile tile) => StartCoroutine(UpdateHand(tile)));
+        UpdateHandUI();
     }
 
-    public void UpdateHandUI()
+    private void OnGameBegin()
     {
-        StartCoroutine(UpdateHand(null));
+        if (clientHand.GetPlayerIndex() == RoundLogic.GetDealerIndex()) { canTileDrop = true; }
+        transform.Find("Viewport").gameObject.SetActive(true);
     }
 }
