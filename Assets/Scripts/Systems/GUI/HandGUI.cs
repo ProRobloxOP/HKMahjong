@@ -15,7 +15,6 @@ public class HandGUI : MonoBehaviour
     {
         PlayerHand.TileDropped += CheckHandActions;
         MainClient.SetClientHand += SetClientHand;
-        RoundLogic.DrawTile += EnableTileDrop;
         RoundLogic.BeginGame += OnGameBegin;
     }
 
@@ -23,14 +22,7 @@ public class HandGUI : MonoBehaviour
     {
         PlayerHand.TileDropped -= CheckHandActions;
         MainClient.SetClientHand -= SetClientHand;
-        RoundLogic.DrawTile -= EnableTileDrop;
         RoundLogic.BeginGame -= OnGameBegin;
-    }
-
-    private void EnableTileDrop(int playerIndex)
-    {
-        if (playerIndex != clientHand.GetPlayerIndex()) { return; }
-        canTileDrop = true;
     }
 
     private void ClearContentUI()
@@ -48,6 +40,7 @@ public class HandGUI : MonoBehaviour
     private void CheckHandActions(int playerIndex, Tile droppedTile)
     {
         if (playerIndex != clientHand.GetPlayerIndex()) { return; }
+        canTileDrop = false;
         UpdateHandUI();
     }
 
@@ -118,10 +111,17 @@ public class HandGUI : MonoBehaviour
     {
         StartCoroutine(UpdateHand(null));
     }
+
+    private void OnTileDraw(Tile tile)
+    {
+        StartCoroutine(UpdateHand(tile));
+        canTileDrop = true;
+    }
+
     private void SetClientHand(PlayerHand clientHand)
     {
         this.clientHand = clientHand;
-        clientHand.OnDraw((PlayerHand playerHand, Tile tile) => StartCoroutine(UpdateHand(tile)));
+        clientHand.OnDraw((PlayerHand playerHand, Tile tile) => OnTileDraw(tile));
         UpdateHandUI();
     }
 

@@ -138,8 +138,17 @@ public class RoundLogic : MonoBehaviour
           if (actionName == "Cancel") { StartCoroutine(WaitToDraw(playerIndex)); }
      }
 
-     private static void RandomizeStartDraws(int startingTileId)
+     private static void RandomizeStartDraws()
      {
+          int diceSum = 0;
+          int startingTileId;
+
+          for (int i = 0; i < 3; i++)
+          {
+               diceSum += UnityEngine.Random.Range(1, 7);
+          }
+          startingTileId = (int) TileSettings.BoardSetting[((diceSum+1)%4 + 2) % 4].startNum - 1 + diceSum*2;
+
           List<Tile> newEnd = wall.GetRange(startingTileId, wall.Count - startingTileId);
           wall.RemoveRange(startingTileId, newEnd.Count);
           wall.InsertRange(0, newEnd);
@@ -151,7 +160,7 @@ public class RoundLogic : MonoBehaviour
           turnDelay = new WaitForSeconds(0.3f);
           wall = TileCreator.GetWallTiles();
 
-          RandomizeStartDraws(UnityEngine.Random.Range(1, wall.Count));
+          RandomizeStartDraws();
 
           for (int i = 0; i < 4; i++)
           {
