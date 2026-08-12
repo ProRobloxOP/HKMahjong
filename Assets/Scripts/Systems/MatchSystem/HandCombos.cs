@@ -24,7 +24,7 @@ public class HandCombos : ScriptableObject
                flowers += tile.suit.Equals("Flower")? 1 : 0;
                seasons += tile.suit.Equals("Season")? 1 : 0;
 
-               if (flowers == TileSettings.general["Flower"] || seasons == TileSettings.general["Season"])
+               if (flowers == TileSettings.General["Flower"] || seasons == TileSettings.General["Season"])
                {
                     return new HandRank
                     {

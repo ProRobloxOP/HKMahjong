@@ -1,14 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RoundLogic : MonoBehaviour
 {
      private static List<PlayerHand> playerHands = new List<PlayerHand> ();
-     private static List<int> playersActionPending = new List<int>();
-     private static int playersLoaded = 0, playerCanWin = 0;
      private static int dealerIndex, drawingPlayerIndex;
+     private static int playersLoaded = 0;
 
      public static event Action<int, Tile> PlayerActionPendingUI;
      public static event Action<int> DrawTile;
@@ -18,16 +19,14 @@ public class RoundLogic : MonoBehaviour
      
      private void OnEnable()
      {
-          ActionsGUI.PlayerAcceptedAction += PlayerAcceptedAction;
           WelcomeScreen.StartRound += OnPlayerLoaded;
-          PlayerHand.TileDropped += SwitchPlayerTurn; 
+          PlayerHand.TileDropped += OnTileDrop; 
           
      } 
     private void OnDisable()
      {
-          ActionsGUI.PlayerAcceptedAction -= PlayerAcceptedAction;
           WelcomeScreen.StartRound -= OnPlayerLoaded;
-          PlayerHand.TileDropped -= SwitchPlayerTurn;
+          PlayerHand.TileDropped -= OnTileDrop;
      } 
 
      public static int GetDealerIndex()
@@ -35,9 +34,19 @@ public class RoundLogic : MonoBehaviour
           return dealerIndex;
      }
 
+     public static int GetDrawingPlayerIndex()
+     {
+          return drawingPlayerIndex;
+     }
+
      public static bool PlayerIsBefore(int checkPlayer, int targetPlayer)
      {
           return (checkPlayer == 4)? targetPlayer == 1 : checkPlayer + 1 == targetPlayer;
+     }
+
+     public static List<PlayerHand> GetPlayerHands()
+     {
+          return playerHands;
      }
 
      public static PlayerHand GetPlayerHand(int playerIndex)
@@ -45,97 +54,32 @@ public class RoundLogic : MonoBehaviour
           return playerHands[playerIndex - 1];
      }
 
-     private void CheckAnyPlayerActionPending()
+     public static void PlayerDrawTile(int playerIndex)
      {
-          playersActionPending.Clear();
-          playerCanWin = 0;
-
-          foreach (PlayerHand playerHand in playerHands)
-          {
-               if (!(bool) playerHand.GetStatus("ActionPending")) { continue; }
-               playersActionPending.Add(playerHand.GetPlayerIndex());
-          }
+          DrawTile?.Invoke(playerIndex);
      }
 
-     private IEnumerator SwitchPlayerCorountine()
+     public static IEnumerator SwitchPlayerCorountine()
      {
-         CheckAnyPlayerActionPending();
+         PlayerActions.CheckAnyPlayerActionPending();
 
-         if (playersActionPending.Count > 0) { yield break; }
+         if (PlayerActions.GetActionPendingPlayers().Count > 0) { yield break; }
          yield return turnDelay;
          DrawTile?.Invoke(drawingPlayerIndex);
      }
-     private IEnumerator WaitToDraw(int playerIndex)
-     {
-          yield return WaitToDraw(playerIndex, false);
-     }
+     
 
-     private IEnumerator WaitToDraw(int playerIndex, bool noDraw)
-     {
-          playersActionPending.Remove(playerIndex);
-          yield return new WaitUntil(() => playersActionPending.Count == 0);
-
-          if (drawingPlayerIndex != playerIndex) { 
-               if (!playersActionPending.Contains(drawingPlayerIndex)){ 
-                    DrawTile?.Invoke(drawingPlayerIndex); 
-               }
-               yield break; 
-          }
-          if (noDraw) { SwitchPlayerCorountine(); } else { DrawTile?.Invoke(playerIndex); }
-     }
-
-     private IEnumerator WaitToPeng(int playerIndex)
-     {
-          yield return new WaitUntil(() => playerCanWin == 0);
-          SwitchPlayerTurn(playerIndex, null); 
-          playersActionPending.Remove(playerIndex);
-     }
-
-     private void SetPendingActions(int lastPlayer, Tile droppedTile)
-     {
-          foreach (PlayerHand playerHand in playerHands)
-          {
-               Dictionary<string, List<Tile>> currTiles = playerHand.GetCurrentTiles();
-               int playerIndex = playerHand.GetPlayerIndex();
-
-               if (lastPlayer == playerIndex) { continue; }
-               if (playerIndex != 1) { continue; } // TESTING
-               if (HandActions.CanWin(currTiles)) {
-                    playerHand.SetStatus("ActionPending", true); 
-                    playerCanWin++;
-               }
-               if (HandActions.CanKong(currTiles, droppedTile).Count > 0) { playerHand.SetStatus("ActionPending", true); continue; }
-               if (HandActions.CanPong(currTiles, droppedTile).Count > 0) { playerHand.SetStatus("ActionPending", true); continue; }
-               if (PlayerIsBefore(lastPlayer, playerIndex) && HandActions.CanCheung(currTiles, droppedTile).Count > 0){ playerHand.SetStatus("ActionPending", true); }
-          }
-     }
-
-     private void SwitchPlayerTurn(int lastPlayer, Tile droppedTile)
+     public static void SwitchPlayerTurn(MonoBehaviour coroutineRunner, int lastPlayer, Tile droppedTile)
      {
           drawingPlayerIndex = (lastPlayer == 4)? 1 : lastPlayer + 1;
-          SetPendingActions(lastPlayer, droppedTile);
+          PlayerActions.SetPendingActions(lastPlayer, droppedTile);
           PlayerActionPendingUI?.Invoke(lastPlayer, droppedTile);
-          StartCoroutine(SwitchPlayerCorountine());
+          coroutineRunner.StartCoroutine(SwitchPlayerCorountine());
      }
 
-     private static void CheckHandForActions(PlayerHand playerHand, Tile tile)
+     private void OnTileDrop(int lastPlayer, Tile droppedTile)
      {
-          Dictionary<string, List<Tile>> currTiles = playerHand.GetCurrentTiles();
-          if (tile.open) { return; }
-          if (HandActions.CanKong(currTiles, tile).Count > 0 || HandActions.CanWin(currTiles))
-          {
-               playerHand.SetStatus("ActionPending", true);
-          }
-     }
-
-     private void PlayerAcceptedAction(int playerIndex, string actionName)
-     {
-          PlayerHand playerHand = playerHands[playerIndex - 1];
-          playerHand.SetStatus("ActionPending", false);
-          // if (actionName == "Hu") {}
-          if (actionName == "Peng" || actionName == "Gang") { StartCoroutine(WaitToPeng(playerIndex)); }
-          if (actionName == "Chi") { StartCoroutine(WaitToDraw(playerIndex, true)); }
-          if (actionName == "Cancel") { StartCoroutine(WaitToDraw(playerIndex)); }
+          SwitchPlayerTurn(this, lastPlayer, droppedTile);
      }
 
      private static void RandomizeStartDraws()
@@ -154,6 +98,21 @@ public class RoundLogic : MonoBehaviour
           wall.InsertRange(0, newEnd);
      }
 
+     private static void SpawnOutsideHand()
+     {
+         for (int i = 0; i < 3; i++)
+          {
+                Tile tile = wall[i];
+               GameObject tilePrefab = Resources.Load<GameObject>("Prefabs/Tiles/" + tile.ToString());
+               GameObject tileObject = TileCreator.CreateTile(tilePrefab, TileSettings.OutsideHandSettings[0].pos, TileSettings.OutsideHandSettings[0].rot, tile.id);
+               tileObject.transform.position = TileSettings.OutsideHandSettings[0].pos;
+               tileObject.transform.rotation = TileSettings.OutsideHandSettings[0].rot;
+               tileObject.transform.SetParent(GameObject.Find("TestTiles").transform);
+
+               tileObject.transform.position = TileCreator.SetTilePos(tileObject, i+1, 1, TileSettings.OutsideHandSettings[0].axis, TileSettings.OutsideHandSettings[0].direction);
+          }
+     }
+
      public static void Init()
      {
           dealerIndex = UnityEngine.Random.Range(1, 5);
@@ -161,13 +120,14 @@ public class RoundLogic : MonoBehaviour
           wall = TileCreator.GetWallTiles();
 
           RandomizeStartDraws();
+          //SpawnOutsideHand();
 
           for (int i = 0; i < 4; i++)
           {
                PlayerHand playerHand = ScriptableObject.CreateInstance<PlayerHand>();
                int playerIndex = i+1;
                playerHand.Setup(TileCreator.GetTileObjects(), playerIndex, playerIndex == dealerIndex);
-               playerHand.OnDraw(CheckHandForActions);
+               playerHand.OnDraw(PlayerActions.CheckHandForActions);
                playerHands.Add(playerHand);
           }
      }

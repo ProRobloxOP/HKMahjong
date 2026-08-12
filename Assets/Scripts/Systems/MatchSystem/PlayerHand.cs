@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -89,6 +90,7 @@ public class PlayerHand : ScriptableObject
         ["ActionPending"] = false,
         ["IsDealer"] = false
     };
+    Dictionary<string, UnityAction<Tile>> addTileMethods;
     public static event Action<int, Tile> TileDropped;
     private GameObject Tiles;
     //private bool allConcealed;
@@ -96,6 +98,12 @@ public class PlayerHand : ScriptableObject
 
     void OnEnable()
     {
+        addTileMethods = new Dictionary<string, UnityAction<Tile>>{
+            ["Dragon"] = AddDragonTile,
+            ["Wind"] = AddWindTile,
+            ["Flower"] = AddFlower,
+            ["Season"] = AddFlower
+        };
         TileDropped += OnTileDrop;
     }
 
@@ -149,21 +157,21 @@ public class PlayerHand : ScriptableObject
         return droppedTiles;
     }
 
-    public List<Tile> GetHandList()
+    public Dictionary<int, Tile> GetHandList()
     {
         return GetHandList(false);
     }
 
-    public List<Tile> GetHandList(bool excludeOpen)
+    public Dictionary<int, Tile> GetHandList(bool excludeOpen)
     {
-        List<Tile> handList = new List<Tile>();
+        Dictionary<int, Tile> handList = new Dictionary<int, Tile>();
 
         foreach (List<Tile> tileList in tiles.Values)
         {
             foreach (Tile tile in tileList)
             {
                 if (excludeOpen && tile.open) { continue; }
-                handList.Add(tile);
+                handList[tile.id] = tile;
             }
         }
 
@@ -185,7 +193,7 @@ public class PlayerHand : ScriptableObject
         return -1;
     }
     
-    private void DrawFlower(Tile tile)
+    private void AddFlower(Tile tile)
     {
         List<Tile> flowerTiles = tiles["Flower"];
         tile.open = true;
@@ -193,7 +201,7 @@ public class PlayerHand : ScriptableObject
         DrawTilesFromWall(1, true);
     }
 
-    private void DrawNormalTile(Tile tile)
+    private void AddNormalTile(Tile tile)
     {
         List<Tile> suitTiles = tiles[tile.suit];
         suitTiles.Add(tile);
@@ -201,7 +209,7 @@ public class PlayerHand : ScriptableObject
         suitTiles.Sort((tile1, tile2) => ((int) tile1.number).CompareTo(tile2.number));
     }
 
-    private void DrawDragonTile(Tile tile)
+    private void AddDragonTile(Tile tile)
     {
         List<Tile> dragonTiles = tiles["Dragon"];
         string[] order = {"White", "Green", "Red"};
@@ -210,13 +218,29 @@ public class PlayerHand : ScriptableObject
         dragonTiles.Sort((tile1, tile2) => CompareTileOrder(order, tile1, tile2));
     }
 
-    private void DrawWindTile(Tile tile)
+    private void AddWindTile(Tile tile)
     {
         List<Tile> windTiles = tiles["Wind"];
         string[] order = {"East", "South", "West", "North"};
         windTiles.Add(tile);
 
         windTiles.Sort((tile1, tile2) => CompareTileOrder(order, tile1, tile2));
+    }
+
+    public void AddOpenMeld(List<Tile> meld)
+    {
+        AddOpenMeld(meld, null);
+    }
+
+    public void AddOpenMeld(List<Tile> meld, Tile addedTile)
+    {
+        if (!addedTile.IsUnityNull())
+        {
+            addedTile.ownerIndex = playerIndex;
+            if (addTileMethods.ContainsKey(addedTile.suit)) { addTileMethods[addedTile.suit](addedTile); }
+            else { AddNormalTile(addedTile); }
+        }
+        openMelds.Add(meld);
     }
 
     public void DrawTilesFromWall(int iterations)
@@ -232,20 +256,15 @@ public class PlayerHand : ScriptableObject
         {
             if (GetHandList(true).Count == 14) { break; }
             if (wall.Count == 0) { break; }
-            Dictionary<string, UnityAction<Tile>> drawMethods = new Dictionary<string, UnityAction<Tile>>
-            {
-                ["Dragon"] = DrawDragonTile,
-                ["Wind"] = DrawWindTile,
-                ["Flower"] = DrawFlower,
-                ["Season"] = DrawFlower
-            };
 
             Tile tile = wall[fromBack? wall.Count - 1 : 0];
             TileCreator.RemoveTile(Tiles, tile.id);
             wall.RemoveAt(fromBack? wall.Count - 1 : 0);
+            tile.ownerIndex = playerIndex;
 
-            if (drawMethods.ContainsKey(tile.suit)) { drawMethods[tile.suit](tile); }
-            if (!drawMethods.ContainsKey(tile.suit)) { DrawNormalTile(tile); }
+            if (addTileMethods.ContainsKey(tile.suit)) { addTileMethods[tile.suit](tile); }
+            else { AddNormalTile(tile); }
+
             CallOnDrawListeners(tile);
         }
     }

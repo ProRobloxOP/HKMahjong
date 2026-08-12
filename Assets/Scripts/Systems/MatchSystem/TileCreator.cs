@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 public class Tile
 {
     public int id;
+    public int ownerIndex;
     public int? number;
     public string suit;
     public string name;
@@ -112,15 +113,15 @@ public class TileCreator : ScriptableObject
     private static Vector3 SetTilePosX(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction, bool switchRowProp)
     {
         return (switchRowProp != true)?
-         new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z) : 
-         new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.general["AxisSpacing"], tileTransform.position.y, tileTransform.position.z - (row-1)*tileBounds.z*TileSettings.general["AxisSpacing"]*direction);
+         new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.General["AxisSpacing"], tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.General["YSpacing"], tileTransform.position.z) : 
+         new Vector3(tileTransform.position.x + (column-1)*direction*tileBounds.x*TileSettings.General["AxisSpacing"], tileTransform.position.y, tileTransform.position.z - (row-1)*tileBounds.z*TileSettings.General["AxisSpacing"]*direction);
     }
 
     private static Vector3 SetTilePosZ(Transform tileTransform, Vector3 tileBounds, int column, int row, int direction, bool switchRowProp)
     {
         return (switchRowProp != true)?
-         new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.general["YSpacing"], tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]) : 
-         new Vector3(tileTransform.position.x + (row-1)*tileBounds.x*TileSettings.general["AxisSpacing"]*direction, tileTransform.position.y, tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.general["AxisSpacing"]);
+         new Vector3(tileTransform.position.x, tileTransform.position.y + (row-1)*tileBounds.y*TileSettings.General["YSpacing"], tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.General["AxisSpacing"]) : 
+         new Vector3(tileTransform.position.x + (row-1)*tileBounds.x*TileSettings.General["AxisSpacing"]*direction, tileTransform.position.y, tileTransform.position.z + (column-1)*direction*tileBounds.z*TileSettings.General["AxisSpacing"]);
     }
 
     public static Vector3 SetTilePos(GameObject tile, int column, int row, string axis, int direction)
@@ -145,16 +146,16 @@ public class TileCreator : ScriptableObject
     {
         Dictionary<string, float> suitSums = new Dictionary<string, float>
         {
-            ["Char"] = TileSettings.general["Char"] - TileTracker.Normal["Char"].Sum(pair => pair.Value),
-            ["Circle"] = TileSettings.general["Circle"] - TileTracker.Normal["Circle"].Sum(pair => pair.Value),
-            ["Stick"] = TileSettings.general["Stick"] - TileTracker.Normal["Stick"].Sum(pair => pair.Value),
+            ["Char"] = TileSettings.General["Char"] - TileTracker.Normal["Char"].Sum(pair => pair.Value),
+            ["Circle"] = TileSettings.General["Circle"] - TileTracker.Normal["Circle"].Sum(pair => pair.Value),
+            ["Stick"] = TileSettings.General["Stick"] - TileTracker.Normal["Stick"].Sum(pair => pair.Value),
 
-            ["Dragon"] = TileSettings.general["Dragon"] - TileTracker.Special["Dragon"].Sum(pair => pair.Value),
-            ["Wind"] = TileSettings.general["Wind"] - TileTracker.Special["Wind"].Sum(pair => pair.Value),
-            ["Flower"] = TileSettings.general["Flower"] - TileTracker.Special["Flower"].Sum(pair => pair.Value),
-            ["Season"] = TileSettings.general["Season"] - TileTracker.Special["Season"].Sum(pair => pair.Value)
+            ["Dragon"] = TileSettings.General["Dragon"] - TileTracker.Special["Dragon"].Sum(pair => pair.Value),
+            ["Wind"] = TileSettings.General["Wind"] - TileTracker.Special["Wind"].Sum(pair => pair.Value),
+            ["Flower"] = TileSettings.General["Flower"] - TileTracker.Special["Flower"].Sum(pair => pair.Value),
+            ["Season"] = TileSettings.General["Season"] - TileTracker.Special["Season"].Sum(pair => pair.Value)
         };
-        int leftover = (int) TileSettings.general["Total"] - TileTracker.total;
+        int leftover = (int) TileSettings.General["Total"] - TileTracker.total;
         float n = UnityEngine.Random.Range(1, leftover);
 
         foreach (var pair in suitSums)
@@ -176,7 +177,7 @@ public class TileCreator : ScriptableObject
           ["Stick"] = "S"  
         };
         
-        int total = (int) TileSettings.general[suit] - usedTiles.Sum(pair => pair.Value);
+        int total = (int) TileSettings.General[suit] - usedTiles.Sum(pair => pair.Value);
         int n = UnityEngine.Random.Range(1, total);
         int num = 1;
 
@@ -204,7 +205,7 @@ public class TileCreator : ScriptableObject
         Dictionary<string, int> usedTiles = TileTracker.Special[suit];
         string[] tileTypes = suit.Equals("Dragon")? new string[] {"White", "Red", "Green"}: 
             suit.Equals("Wind")? new string[] {"East", "South", "North", "West"} : new string[] {"1", "2", "3", "4"};
-        int total = (int) TileSettings.general[suit] - usedTiles.Sum(pair => pair.Value);
+        int total = (int) TileSettings.General[suit] - usedTiles.Sum(pair => pair.Value);
         int n = UnityEngine.Random.Range(1, total);
         string name = "";
 
@@ -231,7 +232,7 @@ public class TileCreator : ScriptableObject
     {
         string suit = AssignRandomSuit();
         Tile tile = (!TileTracker.Normal.ContainsKey(suit))? AssignSpecialTile(suit) : AssignNormalTile(suit);
-        tile.lastTile = (id == TileSettings.general["Total"])? true : false;
+        tile.lastTile = (id == TileSettings.General["Total"])? true : false;
         tile.fromWall = true;
         tile.inCheung = false;
         tile.inPong = false;
@@ -242,28 +243,28 @@ public class TileCreator : ScriptableObject
         return tile;
     }
 
-    public static GameObject CreateTile(GameObject prefab, Vector3 pos, Quaternion rot, int tileNumber)
+    public static GameObject CreateTile(GameObject prefab, Vector3 pos, Quaternion rot, int tileId)
     {
         GameObject tile = Instantiate(prefab, pos, rot);
         Transform transform = tile.transform;
         Vector3 localScale = transform.localScale;
         
         transform.localScale = new Vector3(
-            localScale.x*TileSettings.general["Scale"],
-            localScale.y*TileSettings.general["Scale"],
-            localScale.z*TileSettings.general["Scale"]
+            localScale.x*TileSettings.General["Scale"],
+            localScale.y*TileSettings.General["Scale"],
+            localScale.z*TileSettings.General["Scale"]
         );
 
-        tile.name = tileNumber.ToString();
+        tile.name = tileId.ToString();
         transform.SetParent(GameObject.Find("Tiles").transform, true);
         return tile;
     }
 
     private static void CreateTileStack(int stackNum)
     {
-        for (int column = 1; column <= TileSettings.general["ColumnStack"]; column++)
+        for (int column = 1; column <= TileSettings.General["ColumnStack"]; column++)
         {
-            for (int row = 1; row <= TileSettings.general["RowStack"]; row++)
+            for (int row = 1; row <= TileSettings.General["RowStack"]; row++)
             {
                 TileStack tileStack = TileSettings.BoardSetting[stackNum];
                 int tileNumber = WallTiles.Count() + 1;
@@ -292,7 +293,7 @@ public class TileCreator : ScriptableObject
         Vector3 tileBounds = nextTile.GetComponent<Renderer>().bounds.size;
         Transform transform = nextTile.transform;
         Vector3 pos = transform.position;
-        transform.position = new Vector3(pos.x, pos.y - tileBounds.y*TileSettings.general["YSpacing"], pos.z);
+        transform.position = new Vector3(pos.x, pos.y - tileBounds.y*TileSettings.General["YSpacing"], pos.z);
     }
 
     public static void Init()

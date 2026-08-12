@@ -20,18 +20,24 @@ public class ActionsGUI : MonoBehaviour
         RoundLogic.PlayerActionPendingUI -= OnTileDrop;
     }
 
-    private void CancelActionListener()
+    private void HideActionGUIs()
     {
-        CancelActionListener("Cancel");
-    }
-
-    private void CancelActionListener(string actionName)
-    {
-        foreach (GameObject actionGUI in actionGUIs.Values)
+       foreach (GameObject actionGUI in actionGUIs.Values)
         {
             actionGUI.SetActive(false);
-        }
-        PlayerAcceptedAction?.Invoke(clientHand.GetPlayerIndex(), actionName);
+        } 
+    }
+
+    private void CancelActionListener()
+    {
+        PlayerAcceptedAction?.Invoke(clientHand.GetPlayerIndex(), "Cancel");
+        HideActionGUIs();
+    }
+
+    private void ChiActionListener()
+    {
+        PlayerAcceptedAction?.Invoke(clientHand.GetPlayerIndex(), "Chi");
+        HideActionGUIs();
     }
 
     private void OnTileDrop(int playerIndex, Tile droppedTile)
@@ -59,7 +65,7 @@ public class ActionsGUI : MonoBehaviour
         Dictionary<string, List<Tile>> currTiles = clientHand.GetCurrentTiles();
 
         if (!(bool) clientHand.GetStatus("ActionPending")) { return; }
-        if (HandActions.CanKong(currTiles, drawedTile).Count > 0)
+        if (HandActions.CanKong(currTiles, drawedTile).Count > 0 || HandActions.ContainsKong(currTiles).Count > 0)
         {
             actionGUIs["Cancel"].SetActive(true);
             actionGUIs["Gang"].SetActive(true);
@@ -83,6 +89,7 @@ public class ActionsGUI : MonoBehaviour
         }
 
         actionGUIs["Cancel"].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(CancelActionListener);
+        actionGUIs["Chi"].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(ChiActionListener);
     }
 
     void Start()

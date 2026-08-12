@@ -49,6 +49,18 @@ public class HandActions : ScriptableObject
           return true;
      }
 
+     public static List<List<Tile>> ContainsKong(Dictionary<string, List<Tile>> hand)
+     {
+          List<List<Tile>> pongs = ContainsPong(hand);
+          foreach (List<Tile> tiles in pongs)
+          {
+               if (tiles.Count == 4) { continue; }
+               pongs.Remove(tiles);
+          }
+          
+          return pongs;
+     }
+
      public static List<List<Tile>> ContainsPong(Dictionary<string, List<Tile>> hand)
      {
           List<List<Tile>> pongs = new List<List<Tile>> { };

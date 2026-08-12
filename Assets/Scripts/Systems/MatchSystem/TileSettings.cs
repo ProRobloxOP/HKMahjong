@@ -15,7 +15,7 @@ public struct TileStack
 [CreateAssetMenu(fileName = "TileSettings", menuName = "Scriptable Objects/TileSettings")]
 public class TileSettings : ScriptableObject
 {
-    public static readonly Dictionary<string, float> general = new Dictionary<string, float>
+    public static readonly Dictionary<string, float> General = new Dictionary<string, float>
     {
         ["Total"] = 144,
 
@@ -111,6 +111,12 @@ public class TileSettings : ScriptableObject
 
     public static readonly TileStack[] OutsideHandSettings = new TileStack[]
     {
-        
+        new TileStack
+        {
+            pos = new Vector3(280, 40, 150),
+            rot = Quaternion.Euler(new Vector3(180, 180, 90)),
+            axis = "x",
+            direction = -1
+        }
     };
 }

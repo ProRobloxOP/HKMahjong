@@ -96,7 +96,7 @@ public class HandGUI : MonoBehaviour
         Dictionary<string, List<Tile>> tiles = clientHand.GetCurrentTiles();
         ClearContentUI();
 
-        foreach (Tile tile in clientHand.GetHandList(true))
+        foreach (Tile tile in clientHand.GetHandList(true).Values)
         {
             if (!drawnTile.IsUnityNull() && drawnTile.id == tile.id) { continue; }
             CreateTileUI(tile);
