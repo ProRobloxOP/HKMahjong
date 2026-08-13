@@ -38,10 +38,6 @@ public class PlayerActions : MonoBehaviour
 
     private IEnumerator WaitToDraw(int playerIndex, bool noDraw)
     {
-
-        playersActionPending.Remove(playerIndex);
-        yield return new WaitUntil(() => playersActionPending.Count == 0);
-
         int drawingPlayerIndex = RoundLogic.GetDrawingPlayerIndex();
         if (drawingPlayerIndex != playerIndex)
         {
@@ -61,7 +57,7 @@ public class PlayerActions : MonoBehaviour
 
         foreach (PlayerHand playerHand in RoundLogic.GetPlayerHands())
         {
-            playerHand.GetDroppedTiles()[(int) tile.ownerIndex - 1].Remove(tile);
+            playerHand.GetDroppedTiles()[tile.ownerIndex - 1].Remove(tile);
         }
         
         Destroy(tileTransform.gameObject);
@@ -86,24 +82,48 @@ public class PlayerActions : MonoBehaviour
         }
     }
 
-    private void ChiAcceptedTile(int playerIndex, Tile acceptedTile)
+    private IEnumerator PengAcceptedTile(int playerIndex, Tile acceptedTile)
+    {
+        yield return PengAcceptedTile(playerIndex, acceptedTile, false);
+    }
+
+    private IEnumerator PengAcceptedTile(int playerIndex, Tile acceptedTile, bool gangCheck)
+    {
+        PlayerHand playerHand = RoundLogic.GetPlayerHand(playerIndex);
+        List<Tile> meldTiles = gangCheck? HandActions.CanKong(playerHand.GetCurrentTiles(), acceptedTile) : 
+            HandActions.CanPong(playerHand.GetCurrentTiles(), acceptedTile);
+        
+        if (meldTiles.Count == 0) { yield break; }
+        yield return new WaitUntil(() => playerCanWin == 0);
+        if (meldTiles.Count > 2) { meldTiles.RemoveRange(2, meldTiles.Count - 2); }
+
+        playersActionPending.Remove(playerIndex);
+        meldTiles.Add(acceptedTile);
+        playerHand.AddOpenMeld(meldTiles);
+
+        ShowMeldTiles(playerHand, meldTiles);
+        RemoveDroppedTile(acceptedTile);
+        
+        if (gangCheck){ playerHand.DrawTilesFromWall(1, true); }
+    }
+
+    private IEnumerator ChiAcceptedTile(int playerIndex, Tile acceptedTile)
     {
         PlayerHand playerHand = RoundLogic.GetPlayerHand(playerIndex);
         List<Tile> meldTiles = HandActions.CanCheung(playerHand.GetCurrentTiles(), acceptedTile);
-        if (meldTiles.Count == 0) { return; }
+        Dictionary<string, List<Tile>> sortedMeld = new Dictionary<string, List<Tile>>{
+            [acceptedTile.suit] = meldTiles,
+        };
+        if (meldTiles.Count == 0) { yield break; }
 
-        meldTiles.Add(acceptedTile);
+        playersActionPending.Remove(playerIndex);
+        yield return new WaitUntil(() => playersActionPending.Count == 0);
+        PlayerHand.SortGeneralTile(sortedMeld, acceptedTile);
         playerHand.AddOpenMeld(meldTiles);
+
         ShowMeldTiles(playerHand, meldTiles);
         RemoveDroppedTile(acceptedTile);
         StartCoroutine(WaitToDraw(playerIndex, true));
-    }
-
-    private IEnumerator WaitToPeng(int playerIndex)
-    {
-        yield return new WaitUntil(() => playerCanWin == 0);
-        RoundLogic.SwitchPlayerTurn(this, playerIndex, null);
-        playersActionPending.Remove(playerIndex);
     }
 
     private void PlayerAcceptedAction(int playerIndex, string actionName)
@@ -111,8 +131,8 @@ public class PlayerActions : MonoBehaviour
         PlayerHand playerHand = RoundLogic.GetPlayerHand(playerIndex);
         playerHand.SetStatus("ActionPending", false);
         // if (actionName == "Hu") {}
-        if (actionName == "Peng" || actionName == "Gang") { StartCoroutine(WaitToPeng(playerIndex)); }
-        if (actionName == "Chi") { ChiAcceptedTile(playerIndex, lastDroppedTile); }
+        if (actionName == "Gang" || actionName == "Peng") { StartCoroutine(PengAcceptedTile(playerIndex, lastDroppedTile, actionName == "Geng")); }
+        if (actionName == "Chi") { StartCoroutine(ChiAcceptedTile(playerIndex, lastDroppedTile)); }
         if (actionName == "Cancel") { StartCoroutine(WaitToDraw(playerIndex)); }
     }
 
@@ -130,8 +150,7 @@ public class PlayerActions : MonoBehaviour
                 playerHand.SetStatus("ActionPending", true);
                 playerCanWin++;
             }
-            if (HandActions.CanKong(currTiles, droppedTile).Count > 0) { playerHand.SetStatus("ActionPending", true); continue; }
-            if (HandActions.CanPong(currTiles, droppedTile).Count > 0) { playerHand.SetStatus("ActionPending", true); continue; }
+            if (HandActions.CanKong(currTiles, droppedTile).Count > 0 || HandActions.CanPong(currTiles, droppedTile).Count > 0) { playerHand.SetStatus("ActionPending", true); }
             if (RoundLogic.PlayerIsBefore(lastPlayer, playerIndex) && HandActions.CanCheung(currTiles, droppedTile).Count > 0) { playerHand.SetStatus("ActionPending", true); }
         }
     }
@@ -139,8 +158,7 @@ public class PlayerActions : MonoBehaviour
     public static void CheckHandForActions(PlayerHand playerHand, Tile tile)
     {
         Dictionary<string, List<Tile>> currTiles = playerHand.GetCurrentTiles();
-        if (tile.open) { return; }
-        if (HandActions.CanKong(currTiles, tile).Count > 0 || HandActions.CanWin(currTiles))
+        if (HandActions.ContainsKong(currTiles, true).Count > 0 || !tile.IsUnityNull() && HandActions.CanKong(currTiles, tile).Count > 0 || HandActions.CanWin(currTiles))
         {
             playerHand.SetStatus("ActionPending", true);
         }

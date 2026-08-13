@@ -83,14 +83,14 @@ public class PlayerHand : ScriptableObject
         new List<Tile>{}
     };
 
-    List<Action<PlayerHand, Tile>> onDrawListeners = new List<Action<PlayerHand, Tile>>();
+    private List<Action<PlayerHand, Tile>> onDrawListeners = new List<Action<PlayerHand, Tile>>();
     
     private Dictionary<string, object> statuses = new Dictionary<string, object>
     {
         ["ActionPending"] = false,
         ["IsDealer"] = false
     };
-    Dictionary<string, UnityAction<Tile>> addTileMethods;
+    private static Dictionary<string, UnityAction<Dictionary<string, List<Tile>>, Tile>> sortTileMethods;
     public static event Action<int, Tile> TileDropped;
     private GameObject Tiles;
     //private bool allConcealed;
@@ -98,9 +98,9 @@ public class PlayerHand : ScriptableObject
 
     void OnEnable()
     {
-        addTileMethods = new Dictionary<string, UnityAction<Tile>>{
-            ["Dragon"] = AddDragonTile,
-            ["Wind"] = AddWindTile,
+        sortTileMethods = new Dictionary<string, UnityAction<Dictionary<string, List<Tile>>, Tile>>{
+            ["Dragon"] = SortDragonTile,
+            ["Wind"] = SortWindTile,
             ["Flower"] = AddFlower,
             ["Season"] = AddFlower
         };
@@ -178,7 +178,7 @@ public class PlayerHand : ScriptableObject
         return handList;
     }
 
-    private int CompareTileOrder(string[] orderArray, Tile tile1, Tile tile2)
+    private static int CompareTileOrder(string[] orderArray, Tile tile1, Tile tile2)
     {
         string name1 = tile1.name;
         string name2 = tile2.name;
@@ -193,7 +193,7 @@ public class PlayerHand : ScriptableObject
         return -1;
     }
     
-    private void AddFlower(Tile tile)
+    private void AddFlower(Dictionary<string, List<Tile>> tiles, Tile tile)
     {
         List<Tile> flowerTiles = tiles["Flower"];
         tile.open = true;
@@ -201,7 +201,7 @@ public class PlayerHand : ScriptableObject
         DrawTilesFromWall(1, true);
     }
 
-    private void AddNormalTile(Tile tile)
+    public static void SortNormalTile(Dictionary<string, List<Tile>> tiles, Tile tile)
     {
         List<Tile> suitTiles = tiles[tile.suit];
         suitTiles.Add(tile);
@@ -209,7 +209,7 @@ public class PlayerHand : ScriptableObject
         suitTiles.Sort((tile1, tile2) => ((int) tile1.number).CompareTo(tile2.number));
     }
 
-    private void AddDragonTile(Tile tile)
+    public static void SortDragonTile(Dictionary<string, List<Tile>> tiles, Tile tile)
     {
         List<Tile> dragonTiles = tiles["Dragon"];
         string[] order = {"White", "Green", "Red"};
@@ -218,13 +218,21 @@ public class PlayerHand : ScriptableObject
         dragonTiles.Sort((tile1, tile2) => CompareTileOrder(order, tile1, tile2));
     }
 
-    private void AddWindTile(Tile tile)
+    public static void SortWindTile(Dictionary<string, List<Tile>> tiles, Tile tile)
     {
         List<Tile> windTiles = tiles["Wind"];
         string[] order = {"East", "South", "West", "North"};
         windTiles.Add(tile);
 
         windTiles.Sort((tile1, tile2) => CompareTileOrder(order, tile1, tile2));
+    }
+
+    public static void SortGeneralTile(Dictionary<string, List<Tile>> tiles, Tile tile)
+    {
+        if (sortTileMethods.ContainsKey(tile.suit)) { 
+            sortTileMethods[tile.suit](tiles, tile); 
+        }
+        else { SortNormalTile(tiles, tile); }
     }
 
     public void AddOpenMeld(List<Tile> meld)
@@ -237,10 +245,16 @@ public class PlayerHand : ScriptableObject
         if (!addedTile.IsUnityNull())
         {
             addedTile.ownerIndex = playerIndex;
-            if (addTileMethods.ContainsKey(addedTile.suit)) { addTileMethods[addedTile.suit](addedTile); }
-            else { AddNormalTile(addedTile); }
+            addedTile.open = true;
+            SortGeneralTile(tiles, addedTile);
         }
         openMelds.Add(meld);
+
+        foreach (Tile tile in meld)
+        {
+            tile.open = true;
+        }
+        CallOnDrawListeners(null);
     }
 
     public void DrawTilesFromWall(int iterations)
@@ -251,6 +265,7 @@ public class PlayerHand : ScriptableObject
     public void DrawTilesFromWall(int iterations, bool fromBack)
     {
         List<Tile> wall = TileCreator.GetWallTiles();
+        if (fromBack) { Debug.Log("Drawing From Back!"); }
 
         for (int i = 0; i < iterations; i++)
         {
@@ -261,10 +276,9 @@ public class PlayerHand : ScriptableObject
             TileCreator.RemoveTile(Tiles, tile.id);
             wall.RemoveAt(fromBack? wall.Count - 1 : 0);
             tile.ownerIndex = playerIndex;
+            if (fromBack) { Debug.Log(tile.ToString()); }
 
-            if (addTileMethods.ContainsKey(tile.suit)) { addTileMethods[tile.suit](tile); }
-            else { AddNormalTile(tile); }
-
+            SortGeneralTile(tiles, tile);
             CallOnDrawListeners(tile);
         }
     }

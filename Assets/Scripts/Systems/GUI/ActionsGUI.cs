@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ActionsGUI : MonoBehaviour
@@ -34,6 +35,18 @@ public class ActionsGUI : MonoBehaviour
         HideActionGUIs();
     }
 
+    private void GangActionListener()
+    {
+        PlayerAcceptedAction?.Invoke(clientHand.GetPlayerIndex(), "Gang");
+        HideActionGUIs();
+    }
+
+    private void PengActionListener()
+    {
+        PlayerAcceptedAction?.Invoke(clientHand.GetPlayerIndex(), "Peng");
+        HideActionGUIs();
+    }
+
     private void ChiActionListener()
     {
         PlayerAcceptedAction?.Invoke(clientHand.GetPlayerIndex(), "Chi");
@@ -63,7 +76,6 @@ public class ActionsGUI : MonoBehaviour
     private void OnTileDraw(PlayerHand playerHand, Tile drawedTile)
     {
         Dictionary<string, List<Tile>> currTiles = clientHand.GetCurrentTiles();
-
         if (!(bool) clientHand.GetStatus("ActionPending")) { return; }
         if (HandActions.CanKong(currTiles, drawedTile).Count > 0 || HandActions.ContainsKong(currTiles).Count > 0)
         {
@@ -90,6 +102,8 @@ public class ActionsGUI : MonoBehaviour
 
         actionGUIs["Cancel"].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(CancelActionListener);
         actionGUIs["Chi"].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(ChiActionListener);
+        actionGUIs["Peng"].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(PengActionListener);
+        actionGUIs["Gang"].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(GangActionListener);
     }
 
     void Start()

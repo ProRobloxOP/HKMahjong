@@ -18,7 +18,7 @@ public class HandActions : ScriptableObject
           Debug.Log(ContainsCheung(hand).Count);
           Debug.Log(ContainsPong(hand).Count);
           int totalMelds = ContainsPong(hand).Count + ContainsCheung(hand).Count;
-          string[] noCheck = new string[] { "Flower" };
+          string[] noCheck = new string[] { "Flower", "Season" };
           List<Tile> pair = new List<Tile> { };
           if (totalMelds < 4) { return false; }
 
@@ -51,11 +51,35 @@ public class HandActions : ScriptableObject
 
      public static List<List<Tile>> ContainsKong(Dictionary<string, List<Tile>> hand)
      {
+          return ContainsKong(hand, false);
+     }
+
+     public static List<List<Tile>> ContainsKong(Dictionary<string, List<Tile>> hand, bool noFullOutsideMelds)
+     {
           List<List<Tile>> pongs = ContainsPong(hand);
-          foreach (List<Tile> tiles in pongs)
+          for (int i = 0; i < pongs.Count; i++)
           {
-               if (tiles.Count == 4) { continue; }
+               List<Tile> tiles = pongs[i];
+               bool foundInside = false;
+
+               if (tiles.Count != 4)
+               {
+                    pongs.Remove(tiles);
+                    i--;
+                    continue;
+               }
+               if (!noFullOutsideMelds){ continue; }
+
+               foreach (Tile tile in tiles)
+               {
+                    if (tile.open) { continue; }
+                    foundInside = true;
+                    break;
+               }
+               
+               if (!foundInside) { continue; }
                pongs.Remove(tiles);
+               i--; 
           }
           
           return pongs;
@@ -64,7 +88,7 @@ public class HandActions : ScriptableObject
      public static List<List<Tile>> ContainsPong(Dictionary<string, List<Tile>> hand)
      {
           List<List<Tile>> pongs = new List<List<Tile>> { };
-          string[] noCheck = new string[] { "Flower" };
+          string[] noCheck = new string[] { "Flower", "Season" };
 
           foreach (string suit in hand.Keys)
           {
@@ -165,7 +189,7 @@ public class HandActions : ScriptableObject
      public static List<Tile> CanPong(Dictionary<string, List<Tile>> closedHand, Tile tile)
      {
           List<Tile> pongTiles = new List<Tile>();
-          string[] noCheck = new string[] { "Flower" };
+          string[] noCheck = new string[] { "Flower", "Season" };
 
           if (noCheck.Contains(tile.suit)) { return pongTiles; }
           foreach (Tile ownedTile in closedHand[tile.suit])
