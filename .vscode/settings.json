@@ -67,6 +67,9 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "HKMajong.slnx",
-    "dotnet.enableWorkspaceBasedDevelopment": false
+    "dotnet.defaultSolution": "HKMahjong.slnx",
+    "dotnet.enableWorkspaceBasedDevelopment": false,
+    "terminal.integrated.env.osx": {
+        "PATH":"${env:PATH}:${workspace}/Users/student/bin"
+    }
 }

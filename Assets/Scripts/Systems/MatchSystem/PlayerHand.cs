@@ -1,17 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using Mono.Cecil;
-using Unity.Burst;
 using Unity.VisualScripting;
-using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.InputSystem.Controls;
-using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 [Serializable]
 public struct HandRank
@@ -72,7 +64,7 @@ public class PlayerHand : ScriptableObject
         ["Thirteen Orphans"] = () => {},
         ["Seven Pairs"] = () => {}
     };*/
-    public Dictionary<string, List<Tile>> tiles = new Dictionary<string, List<Tile>>
+    private Dictionary<string, List<Tile>> tiles = new Dictionary<string, List<Tile>>
     {
         ["Char"] = new List<Tile>{},
         ["Circle"] = new List<Tile>{},
@@ -82,25 +74,117 @@ public class PlayerHand : ScriptableObject
         ["Wind"] = new List<Tile>{},
         ["Flower"] = new List<Tile>{}
     }; // suit -> Tile
-    public List<Tile>[] droppedTiles = new List<Tile>[]
+    private List<List<Tile>> openMelds = new List<List<Tile>>{};
+    private List<Tile>[] droppedTiles = new List<Tile>[]
     {
         new List<Tile>{},
         new List<Tile>{},
         new List<Tile>{},
         new List<Tile>{}
     };
-    public static event Action<int, Tile> PlayerDroppedTile;
+
+    private List<Action<PlayerHand, Tile>> onDrawListeners = new List<Action<PlayerHand, Tile>>();
+    
+    private Dictionary<string, object> statuses = new Dictionary<string, object>
+    {
+        ["ActionPending"] = false,
+        ["IsDealer"] = false
+    };
+    private static Dictionary<string, UnityAction<Dictionary<string, List<Tile>>, Tile>> sortTileMethods;
+    public static event Action<int, Tile> TileDropped;
     private GameObject Tiles;
     //private bool allConcealed;
-    public int playerIndex;
+    private int playerIndex;
 
-    private int CompareOrder(String[] order, Tile tile1, Tile tile2)
+    void OnEnable()
     {
-        String name1 = tile1.name;
-        String name2 = tile2.name;
+        sortTileMethods = new Dictionary<string, UnityAction<Dictionary<string, List<Tile>>, Tile>>{
+            ["Dragon"] = SortDragonTile,
+            ["Wind"] = SortWindTile,
+            ["Flower"] = AddFlower,
+            ["Season"] = AddFlower
+        };
+        TileDropped += OnTileDrop;
+    }
+
+    void OnDisable()
+    {
+        TileDropped -= OnTileDrop;
+    }
+
+    public object GetStatus(string name)
+    {
+        return statuses[name];
+    }
+
+    public int GetPlayerIndex()
+    {
+        return playerIndex;
+    }
+
+    public void SetStatus(string name, object value)
+    {
+        statuses[name] = value;
+    }
+
+    private IEnumerator WaitForStatusChange(string name, Action<object> listener)
+    {
+        while (true)
+        {
+            object currVal = statuses[name];
+            yield return new WaitUntil(() => statuses[name] != currVal);
+            listener(statuses[name]);
+        }
+    }
+
+    public void OnStatusChange(MonoBehaviour monoRunner, string name, Action<object> listener)
+    {
+        monoRunner.StartCoroutine(WaitForStatusChange(name, listener));
+    }
+
+    public Dictionary<string, List<Tile>> GetCurrentTiles()
+    {
+        return tiles;
+    }
+
+    public List<List<Tile>> GetOpenMelds()
+    {
+        return openMelds;
+    }
+
+    public List<Tile>[] GetDroppedTiles()
+    {
+        return droppedTiles;
+    }
+
+    public Dictionary<int, Tile> GetHandList()
+    {
+        return GetHandList(false);
+    }
+
+    public Dictionary<int, Tile> GetHandList(bool excludeOpen)
+    {
+        Dictionary<int, Tile> handList = new Dictionary<int, Tile>();
+
+        foreach (List<Tile> tileList in tiles.Values)
+        {
+            foreach (Tile tile in tileList)
+            {
+                if (excludeOpen && tile.open) { continue; }
+                handList[tile.id] = tile;
+            }
+        }
+
+        return handList;
+    }
+
+    private static int CompareTileOrder(string[] orderArray, Tile tile1, Tile tile2)
+    {
+        string name1 = tile1.name;
+        string name2 = tile2.name;
         if (name1.Equals(name2)) { return 0; }
 
-        foreach (String rank in order)
+        foreach (string rank in orderArray)
         {
             if (name1.Equals(rank)){ return 1; }
             if (name2.Equals(rank)) { return -1; }
@@ -109,15 +193,15 @@ public class PlayerHand : ScriptableObject
         return -1;
     }
     
-    private void DrawFlower(Tile tile)
+    private void AddFlower(Dictionary<string, List<Tile>> tiles, Tile tile)
     {
         List<Tile> flowerTiles = tiles["Flower"];
-        flowerTiles.Add(tile);
-        DrawTilesFromWall(1);
         tile.open = true;
+        flowerTiles.Add(tile);
+        DrawTilesFromWall(1, true);
     }
 
-    private void DrawNormalTile(Tile tile)
+    public static void SortNormalTile(Dictionary<string, List<Tile>> tiles, Tile tile)
     {
         List<Tile> suitTiles = tiles[tile.suit];
         suitTiles.Add(tile);
@@ -125,56 +209,95 @@ public class PlayerHand : ScriptableObject
         suitTiles.Sort((tile1, tile2) => ((int) tile1.number).CompareTo(tile2.number));
     }
 
-    private void DrawDragonTile(Tile tile)
+    public static void SortDragonTile(Dictionary<string, List<Tile>> tiles, Tile tile)
     {
         List<Tile> dragonTiles = tiles["Dragon"];
-        String[] order = {"White", "Green", "Red"};
+        string[] order = {"White", "Green", "Red"};
         dragonTiles.Add(tile);
 
-        dragonTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
+        dragonTiles.Sort((tile1, tile2) => CompareTileOrder(order, tile1, tile2));
     }
 
-    private void DrawWindTile(Tile tile)
+    public static void SortWindTile(Dictionary<string, List<Tile>> tiles, Tile tile)
     {
         List<Tile> windTiles = tiles["Wind"];
-        String[] order = {"East", "South", "West", "North"};
+        string[] order = {"East", "South", "West", "North"};
         windTiles.Add(tile);
 
-        windTiles.Sort((tile1, tile2) => CompareOrder(order, tile1, tile2));
+        windTiles.Sort((tile1, tile2) => CompareTileOrder(order, tile1, tile2));
+    }
+
+    public static void SortGeneralTile(Dictionary<string, List<Tile>> tiles, Tile tile)
+    {
+        if (sortTileMethods.ContainsKey(tile.suit)) { 
+            sortTileMethods[tile.suit](tiles, tile); 
+        }
+        else { SortNormalTile(tiles, tile); }
+    }
+
+    public void AddOpenMeld(List<Tile> meld)
+    {
+        AddOpenMeld(meld, null);
+    }
+
+    public void AddOpenMeld(List<Tile> meld, Tile addedTile)
+    {
+        if (!addedTile.IsUnityNull())
+        {
+            addedTile.ownerIndex = playerIndex;
+            addedTile.open = true;
+            SortGeneralTile(tiles, addedTile);
+        }
+        openMelds.Add(meld);
+
+        foreach (Tile tile in meld)
+        {
+            tile.open = true;
+        }
+        CallOnDrawListeners(null);
     }
 
     public void DrawTilesFromWall(int iterations)
     {
+        DrawTilesFromWall(iterations, false);
+    }
+
+    public void DrawTilesFromWall(int iterations, bool fromBack)
+    {
+        List<Tile> wall = TileCreator.GetWallTiles();
+        if (fromBack) { Debug.Log("Drawing From Back!"); }
+
         for (int i = 0; i < iterations; i++)
         {
-            Dictionary<String, Action<Tile>> addMethods = new Dictionary<String, Action<Tile>>
-            {
-                ["Dragon"] = DrawDragonTile,
-                ["Wind"] = DrawWindTile,
-                ["Flower"] = DrawFlower,
-                ["Season"] = DrawFlower
-            };
-            List<Tile> wall = TileCreator.wall;
-            Tile tile;
+            if (GetHandList(true).Count == 14) { break; }
+            if (wall.Count == 0) { break; }
 
-            if (wall.Count() == 0) { return; }
-            tile = wall[0];
+            Tile tile = wall[fromBack? wall.Count - 1 : 0];
             TileCreator.RemoveTile(Tiles, tile.id);
-            wall.RemoveAt(0);
+            wall.RemoveAt(fromBack? wall.Count - 1 : 0);
+            tile.ownerIndex = playerIndex;
+            if (fromBack) { Debug.Log(tile.ToString()); }
 
-            if (addMethods.ContainsKey(tile.suit)) { addMethods[tile.suit](tile); continue; }
-            DrawNormalTile(tile);
+            SortGeneralTile(tiles, tile);
+            CallOnDrawListeners(tile);
         }
+    }
+
+    private void OnTileDrop(int playerIndex, Tile droppedTile)
+    {
+        if (playerIndex == this.playerIndex) { return; }
+        droppedTiles[playerIndex - 1].Add(droppedTile);
     }
 
     private void VisualizeDrop(int playerIndex, Tile tile)
     {
-        DropRow dropRow = TileSettings.dropSetting[playerIndex - 1];
+        TileStack dropRow = TileSettings.DropSetting[playerIndex - 1]; // eg. Player 1 -> Index 0 (First Index)
         List<Tile> playerDropped = droppedTiles[playerIndex - 1];
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tiles/" + tile.ToString() + ".prefab");
+        GameObject prefab = Resources.Load<GameObject>("Prefabs/Tiles/" + tile.ToString());
 
         GameObject tileObj = TileCreator.CreateTile(prefab, dropRow.pos, dropRow.rot, tile.id);
-        tileObj.transform.position = TileCreator.SetTilePos(tileObj, playerDropped.Count + 1, 1, dropRow.axis, dropRow.direction);
+        tileObj.transform.position = TileCreator.SetTilePos(tileObj, playerDropped.Count % 6, playerDropped.Count / 6, dropRow.axis, dropRow.direction, true);
+        tileObj.transform.SetParent(GameObject.Find("DroppedTiles").transform);
         playerDropped.Add(tile);
     }
 
@@ -184,17 +307,31 @@ public class PlayerHand : ScriptableObject
         suitList.Remove(tile);
         tile.open = true;
 
-        PlayerDroppedTile?.Invoke(playerIndex, tile);
+        TileDropped?.Invoke(playerIndex, tile);
         VisualizeDrop(playerIndex, tile);
     }
 
-    public Dictionary<String, List<Tile>> SetupPlayerHand(GameObject Tiles, int playerIndex, bool dealer)
+    public Dictionary<string, List<Tile>> Setup(GameObject Tiles, int playerIndex, bool isDealer)
     {
         this.playerIndex = playerIndex;
         this.Tiles = Tiles;
+        statuses["IsDealer"] = isDealer;
         //allConcealed = true;
-        DrawTilesFromWall((dealer)? 14 : 13);
+        DrawTilesFromWall(isDealer? 14 : 13);
 
         return tiles;
+    }
+
+    private void CallOnDrawListeners(Tile tile)
+    {   
+        foreach (Action<PlayerHand, Tile> listener in onDrawListeners)
+        {
+            listener(this, tile);
+        }
+    }
+
+    public void OnDraw(Action<PlayerHand, Tile> call)
+    {
+        onDrawListeners.Add(call);
     }
 }
